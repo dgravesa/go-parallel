@@ -49,15 +49,25 @@ func (s *Strategy) For(N int, loopBody func(i int)) {
 	wg.Wait()
 }
 
+// grIndexBlock computes the contiguous index range for a goroutine with given ID
 func (s *Strategy) grIndexBlock(grID, N int) (int, int) {
-	var firstIndex, lastIndex int
+	div := N / s.numGoroutines
+	mod := N % s.numGoroutines
 
-	// compute contiguous index range for goroutine with given ID
-	itemsPerGR := N / s.numGoroutines
-	firstIndex = grID * itemsPerGR
-	if lastIndex = (grID + 1) * itemsPerGR; lastIndex > N {
-		lastIndex = N
+	numWorkItems := div
+	if grID < mod {
+		numWorkItems++
 	}
 
+	firstIndex := grID*div + minInt(grID, mod)
+	lastIndex := firstIndex + numWorkItems
+
 	return firstIndex, lastIndex
+}
+
+func minInt(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
