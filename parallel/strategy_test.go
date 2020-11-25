@@ -1,6 +1,9 @@
 package parallel
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func Test_StrategyFor_WithNewStrategy_ComputesCorrectResult(t *testing.T) {
 	// arrange
@@ -13,16 +16,7 @@ func Test_StrategyFor_WithNewStrategy_ComputesCorrectResult(t *testing.T) {
 	})
 
 	// assert
-	for i := 0; i < len(slice); i++ {
-		failed := false
-		if slice[i] != expectedResult[i] {
-			failed = true
-		}
-
-		if failed {
-			t.Errorf("expected %v, actual %v\n", expectedResult, slice)
-		}
-	}
+	assertFloat64SlicesEqual(t, expectedResult, slice, "")
 }
 
 func Test_StrategyFor_WithDefaultStrategy_ComputesCorrectResult(t *testing.T) {
@@ -36,16 +30,7 @@ func Test_StrategyFor_WithDefaultStrategy_ComputesCorrectResult(t *testing.T) {
 	})
 
 	// assert
-	for i := 0; i < len(slice); i++ {
-		failed := false
-		if slice[i] != expectedResult[i] {
-			failed = true
-		}
-
-		if failed {
-			t.Errorf("expected %v, actual %v\n", expectedResult, slice)
-		}
-	}
+	assertFloat64SlicesEqual(t, expectedResult, slice, "")
 }
 
 func Test_StrategyFor_WithVaryingNumGoroutines_ComputesCorrectResult(t *testing.T) {
@@ -63,17 +48,8 @@ func Test_StrategyFor_WithVaryingNumGoroutines_ComputesCorrectResult(t *testing.
 		})
 
 		// assert
-		for i := 0; i < N; i++ {
-			failed := false
-			if expectedOutput[i] != actualOutput[i] {
-				failed = true
-			}
-
-			if failed {
-				t.Errorf("%d threads) expected %v, actual %v\n",
-					numGRs, expectedOutput, actualOutput)
-			}
-		}
+		prefix := fmt.Sprintf("%d threads) ", numGRs)
+		assertFloat64SlicesEqual(t, expectedOutput, actualOutput, prefix)
 	}
 }
 
