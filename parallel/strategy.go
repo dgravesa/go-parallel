@@ -1,7 +1,6 @@
 package parallel
 
 import (
-	"runtime"
 	"sync"
 )
 
@@ -20,7 +19,7 @@ func NewStrategy() *Strategy {
 // DefaultStrategy returns the default parallel strategy
 func DefaultStrategy() *Strategy {
 	s := new(Strategy)
-	s.numGoroutines = runtime.GOMAXPROCS(0)
+	s.numGoroutines = DefaultNumGoroutines()
 	return s
 }
 
@@ -32,6 +31,15 @@ func (s *Strategy) WithNumGoroutines(numGoroutines int) *Strategy {
 
 // For executes a loop in parallel from i = 0 while i < N using the given strategy
 func (s *Strategy) For(N int, loopBody func(i int)) {
+	loopBodyWithGrID := func(i, _ int) {
+		loopBody(i)
+	}
+
+	s.ForWithGrID(N, loopBodyWithGrID)
+}
+
+// ForWithGrID executes a loop in parallel from i = 0 while i < N using the given strategy
+func (s *Strategy) ForWithGrID(N int, loopBody func(i, grID int)) {
 	var wg sync.WaitGroup
 	wg.Add(s.numGoroutines)
 
@@ -41,7 +49,7 @@ func (s *Strategy) For(N int, loopBody func(i int)) {
 			defer wg.Done()
 			first, last := s.grIndexBlock(grID, N)
 			for i := first; i < last; i++ {
-				loopBody(i)
+				loopBody(i, grID)
 			}
 		}(grID)
 	}
