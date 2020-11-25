@@ -10,25 +10,26 @@ import (
 
 func main() {
 	var N int
-	flag.IntVar(&N, "N", 1000, "number of vector elements")
+	var runSerial bool
+
+	flag.IntVar(&N, "N", 1000000, "number of vector elements")
+	flag.BoolVar(&runSerial, "Serial", false, "run non-parallelized for loop instead")
 	flag.Parse()
 
-	serialX := make([]int, N)
-	parallelX := make([]int, N)
+	x := make([]int, N)
 
-	// run computation serially
-	si := time.Now()
-	for i := 0; i < N; i++ {
-		serialX[i] = i
+	t1 := time.Now()
+	if runSerial {
+		// run computation serially
+		for i := 0; i < N; i++ {
+			x[i] = i
+		}
+	} else {
+		// run computation in parallel
+		parallel.For(N, func(i int) {
+			x[i] = i
+		})
 	}
-	sf := time.Now()
-	fmt.Println("serial time:", sf.Sub(si))
-
-	// run computation in parallel
-	pi := time.Now()
-	parallel.For(N, func(i int) {
-		parallelX[i] = i
-	})
-	pf := time.Now()
-	fmt.Println("parallel time:", pf.Sub(pi))
+	t2 := time.Now()
+	fmt.Println(t2.Sub(t1))
 }

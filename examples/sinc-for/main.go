@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"runtime"
 	"time"
 
 	"github.com/dgravesa/go-parallel/parallel"
@@ -15,11 +16,13 @@ func main() {
 	var seed int64
 	var printSome int
 	var runSerial bool
+	var numCPU int
 
 	flag.IntVar(&N, "N", 1000000, "number of work items")
 	flag.Int64Var(&seed, "Seed", 1, "random generator seed")
 	flag.IntVar(&printSome, "PrintSome", 0, "print first num values of result to verify")
 	flag.BoolVar(&runSerial, "Serial", false, "run non-parallelized for loop instead")
+	flag.IntVar(&numCPU, "NumGoroutines", runtime.NumCPU(), "number of goroutines to use in parallel loop")
 	flag.Parse()
 
 	// initialize input array of N values
@@ -39,7 +42,7 @@ func main() {
 			outputArray[i] = sinc(inputArray[i] * math.Pi)
 		}
 	} else {
-		parallel.For(N, func(i int) {
+		parallel.WithNumGoroutines(numCPU).For(N, func(i int) {
 			outputArray[i] = sinc(inputArray[i] * math.Pi)
 		})
 	}

@@ -23,7 +23,7 @@ func Test_StrategyGRIndexBlock_ReturnsCorrectRange(t *testing.T) {
 
 	for i, tc := range testCases {
 		// act
-		s := New().WithNumThreads(tc.numGR)
+		s := NewStrategy().WithNumGoroutines(tc.numGR)
 		actualStart, actualFinish := s.grIndexBlock(tc.grID, tc.N)
 
 		// assert
