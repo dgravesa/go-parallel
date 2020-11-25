@@ -10,23 +10,23 @@ type Strategy struct {
 	numGoroutines int
 }
 
-// New returns a new parallel strategy
-func New() *Strategy {
+// NewStrategy returns a new parallel strategy
+func NewStrategy() *Strategy {
 	s := new(Strategy)
 	s.numGoroutines = 1
 	return s
 }
 
-// Default returns the default parallel strategy
-func Default() *Strategy {
+// DefaultStrategy returns the default parallel strategy
+func DefaultStrategy() *Strategy {
 	s := new(Strategy)
 	s.numGoroutines = runtime.GOMAXPROCS(0)
 	return s
 }
 
-// WithNumThreads sets the number of threads for a parallel strategy
-func (s *Strategy) WithNumThreads(numThreads int) *Strategy {
-	s.numGoroutines = numThreads
+// WithNumGoroutines sets the number of goroutines for a parallel strategy
+func (s *Strategy) WithNumGoroutines(numGoroutines int) *Strategy {
+	s.numGoroutines = numGoroutines
 	return s
 }
 
