@@ -53,6 +53,32 @@ func Test_StrategyFor_WithVaryingNumGoroutines_ComputesCorrectResult(t *testing.
 	}
 }
 
+func Test_StrategyForWithGrID_ComputesCorrectResult(t *testing.T) {
+	// arrange
+	inputArray := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
+	expectedSum := 15 * 16 / 2
+	N := len(inputArray)
+
+	for _, numGR := range []int{1, 2, 3, 4} {
+		partialSums := make([]int, numGR)
+		s := DefaultStrategy().WithNumGoroutines(numGR)
+
+		// act
+		s.ForWithGrID(N, func(i, grID int) {
+			partialSums[grID] += inputArray[i]
+		})
+
+		// assert
+		actualSum := 0
+		for _, partialSum := range partialSums {
+			actualSum += partialSum
+		}
+		if expectedSum != actualSum {
+			t.Errorf("%d threads) expected %d, actual %d\n", numGR, expectedSum, actualSum)
+		}
+	}
+}
+
 func Test_StrategyGRIndexBlock_ReturnsCorrectRange(t *testing.T) {
 	type TestCase struct {
 		numGR, grID, N      int

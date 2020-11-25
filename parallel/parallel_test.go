@@ -34,6 +34,29 @@ func Test_For_ComputesCorrectResult(t *testing.T) {
 	assertFloat64SlicesEqual(t, expectedResult, slice, "")
 }
 
+func Test_ForWithGrID_ComputesCorrectResult(t *testing.T) {
+	// arrange
+	inputArray := []int{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	expectedSum := 9 * 10 / 2
+	N := len(inputArray)
+	numGR := DefaultNumGoroutines()
+	partialSums := make([]int, numGR)
+
+	// act
+	ForWithGrID(N, func(i, grID int) {
+		partialSums[grID] += inputArray[i]
+	})
+
+	// assert
+	actualSum := 0
+	for _, partialSum := range partialSums {
+		actualSum += partialSum
+	}
+	if expectedSum != actualSum {
+		t.Errorf("expected %d, actual %d\n", expectedSum, actualSum)
+	}
+}
+
 func Test_WithNumGoroutines_ReturnsValidStrategy(t *testing.T) {
 	// arrange
 	numGoroutines := 3
