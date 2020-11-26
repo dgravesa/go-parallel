@@ -79,6 +79,21 @@ func Test_StrategyForWithGrID_ComputesCorrectResult(t *testing.T) {
 	}
 }
 
+func Test_StrategyWithCPUProportion_HasAtLeastOneGoroutine(t *testing.T) {
+	// arrange
+	p := 0.0
+	expected := 1
+
+	// arrange / act
+	s := NewStrategy().WithCPUProportion(p)
+
+	// assert
+	actual := s.numGoroutines
+	if expected != actual {
+		t.Errorf("expected %d, actual %d\n", expected, actual)
+	}
+}
+
 func Test_StrategyGRIndexBlock_ReturnsCorrectRange(t *testing.T) {
 	type TestCase struct {
 		numGR, grID, N      int

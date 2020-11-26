@@ -1,6 +1,8 @@
 package parallel
 
 import (
+	"math"
+	"runtime"
 	"sync"
 )
 
@@ -26,6 +28,14 @@ func DefaultStrategy() *Strategy {
 // WithNumGoroutines sets the number of goroutines for a parallel strategy
 func (s *Strategy) WithNumGoroutines(numGoroutines int) *Strategy {
 	s.numGoroutines = numGoroutines
+	return s
+}
+
+// WithCPUProportion sets the number of goroutines based on a proportion of number of CPUs
+func (s *Strategy) WithCPUProportion(p float64) *Strategy {
+	numCPU := runtime.NumCPU()
+	pCPU := p * float64(numCPU)
+	s.numGoroutines = int(math.Max(pCPU, 1.0))
 	return s
 }
 
