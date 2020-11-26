@@ -1,8 +1,10 @@
-package parallel
+package parallel_test
 
 import (
 	"fmt"
 	"testing"
+
+	"github.com/dgravesa/go-parallel/parallel"
 )
 
 func Test_StrategyFor_WithNewStrategy_ComputesCorrectResult(t *testing.T) {
@@ -11,7 +13,7 @@ func Test_StrategyFor_WithNewStrategy_ComputesCorrectResult(t *testing.T) {
 	expectedResult := []float64{1.0, 4.75, -0.5, -1.0, 1.5, 1.75}
 
 	// act
-	NewStrategy().For(len(slice), func(i int) {
+	parallel.NewStrategy().For(len(slice), func(i int) {
 		slice[i] += 1.0
 	})
 
@@ -25,7 +27,7 @@ func Test_StrategyFor_WithDefaultStrategy_ComputesCorrectResult(t *testing.T) {
 	expectedResult := []float64{1.0, 4.75, -0.5, -1.0, 1.5, 1.75, 2.0, 5.5, -14.0}
 
 	// act
-	DefaultStrategy().For(len(slice), func(i int) {
+	parallel.DefaultStrategy().For(len(slice), func(i int) {
 		slice[i] += 1.0
 	})
 
@@ -43,7 +45,7 @@ func Test_StrategyFor_WithVaryingNumGoroutines_ComputesCorrectResult(t *testing.
 		actualOutput := make([]float64, N)
 
 		// act
-		DefaultStrategy().WithNumGoroutines(numGRs).For(N, func(i int) {
+		parallel.DefaultStrategy().WithNumGoroutines(numGRs).For(N, func(i int) {
 			actualOutput[i] = 2.0 * inputArray[i]
 		})
 
@@ -61,7 +63,7 @@ func Test_StrategyForWithGrID_ComputesCorrectResult(t *testing.T) {
 
 	for _, numGR := range []int{1, 2, 3, 4} {
 		partialSums := make([]int, numGR)
-		s := DefaultStrategy().WithNumGoroutines(numGR)
+		s := parallel.DefaultStrategy().WithNumGoroutines(numGR)
 
 		// act
 		s.ForWithGrID(N, func(i, grID int) {
@@ -85,10 +87,10 @@ func Test_StrategyWithCPUProportion_HasAtLeastOneGoroutine(t *testing.T) {
 	expected := 1
 
 	// arrange / act
-	s := NewStrategy().WithCPUProportion(p)
+	s := parallel.NewStrategy().WithCPUProportion(p)
 
 	// assert
-	actual := s.numGoroutines
+	actual := s.NumGoroutines()
 	if expected != actual {
 		t.Errorf("expected %d, actual %d\n", expected, actual)
 	}
@@ -97,7 +99,7 @@ func Test_StrategyWithCPUProportion_HasAtLeastOneGoroutine(t *testing.T) {
 func Test_StrategyNumGoroutines_ReturnsExpectedResult(t *testing.T) {
 	// arrange
 	expected := 3
-	s := DefaultStrategy().WithNumGoroutines(expected)
+	s := parallel.DefaultStrategy().WithNumGoroutines(expected)
 
 	// act
 	actual := s.NumGoroutines()
@@ -105,37 +107,5 @@ func Test_StrategyNumGoroutines_ReturnsExpectedResult(t *testing.T) {
 	// assert
 	if expected != actual {
 		t.Errorf("expected %d, actual %d\n", expected, actual)
-	}
-}
-
-func Test_StrategyGRIndexBlock_ReturnsCorrectRange(t *testing.T) {
-	type TestCase struct {
-		numGR, grID, N      int
-		expStart, expFinish int
-	}
-
-	// arrange
-	testCases := []TestCase{
-		{1, 0, 13, 0, 13},
-		{2, 0, 15, 0, 8},
-		{2, 1, 15, 8, 15},
-		{3, 0, 20, 0, 7},
-		{3, 1, 20, 7, 14},
-		{3, 2, 20, 14, 20},
-		{3, 0, 1000, 0, 334},
-		{3, 1, 1000, 334, 667},
-		{3, 2, 1000, 667, 1000},
-	}
-
-	for i, tc := range testCases {
-		// act
-		s := NewStrategy().WithNumGoroutines(tc.numGR)
-		actualStart, actualFinish := s.grIndexBlock(tc.grID, tc.N)
-
-		// assert
-		if tc.expStart != actualStart || tc.expFinish != actualFinish {
-			t.Errorf("%d) %v expected = [%d, %d) actual [%d, %d)\n", i, tc,
-				tc.expStart, tc.expFinish, actualStart, actualFinish)
-		}
 	}
 }
