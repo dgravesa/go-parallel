@@ -9,12 +9,14 @@ import (
 // Strategy contains the parallel execution parameters.
 type Strategy struct {
 	numGoroutines int
+	lockOSThreads bool
 }
 
 // NewStrategy returns a new parallel strategy
 func NewStrategy() *Strategy {
 	s := new(Strategy)
 	s.numGoroutines = 1
+	s.lockOSThreads = false
 	return s
 }
 
@@ -22,6 +24,7 @@ func NewStrategy() *Strategy {
 func DefaultStrategy() *Strategy {
 	s := new(Strategy)
 	s.numGoroutines = runtime.GOMAXPROCS(0)
+	s.lockOSThreads = true
 	return s
 }
 
@@ -44,6 +47,12 @@ func (s *Strategy) WithCPUProportion(p float64) *Strategy {
 	return s
 }
 
+// WithOSThreadLock sets whether or not to lock loop goroutines to OS threads
+func (s *Strategy) WithOSThreadLock(lockOSThreads bool) *Strategy {
+	s.lockOSThreads = lockOSThreads
+	return s
+}
+
 // For executes a loop in parallel from i = 0 while i < N using the given strategy
 func (s *Strategy) For(N int, loopBody func(i int)) {
 	loopBodyWithGrID := func(i, _ int) {
@@ -62,9 +71,19 @@ func (s *Strategy) ForWithGrID(N int, loopBody func(i, grID int)) {
 	for grID := 0; grID < s.numGoroutines; grID++ {
 		go func(grID int) {
 			defer wg.Done()
+
+			if s.lockOSThreads {
+				runtime.LockOSThread()
+			}
+
+			// execute goroutine's index block
 			first, last := s.grIndexBlock(grID, N)
 			for i := first; i < last; i++ {
 				loopBody(i, grID)
+			}
+
+			if s.lockOSThreads {
+				runtime.UnlockOSThread()
 			}
 		}(grID)
 	}
