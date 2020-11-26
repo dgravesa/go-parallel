@@ -1,7 +1,5 @@
 package parallel
 
-import "runtime"
-
 // For executes a loop in parallel from i = 0 while i < N
 func For(N int, loopBody func(i int)) {
 	DefaultStrategy().For(N, loopBody)
@@ -26,5 +24,5 @@ func WithCPUProportion(p float64) *Strategy {
 
 // DefaultNumGoroutines returns the default number of goroutines.
 func DefaultNumGoroutines() int {
-	return runtime.GOMAXPROCS(0)
+	return DefaultStrategy().NumGoroutines()
 }

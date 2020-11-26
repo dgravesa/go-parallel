@@ -21,8 +21,13 @@ func NewStrategy() *Strategy {
 // DefaultStrategy returns the default parallel strategy
 func DefaultStrategy() *Strategy {
 	s := new(Strategy)
-	s.numGoroutines = DefaultNumGoroutines()
+	s.numGoroutines = runtime.GOMAXPROCS(0)
 	return s
+}
+
+// NumGoroutines returns the number of goroutines that a strategy will use
+func (s *Strategy) NumGoroutines() int {
+	return s.numGoroutines
 }
 
 // WithNumGoroutines sets the number of goroutines for a parallel strategy
