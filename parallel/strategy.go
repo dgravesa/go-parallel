@@ -11,32 +11,34 @@ type Strategy struct {
 	numGoroutines int
 }
 
-// NewStrategy returns a new parallel strategy
+// NewStrategy returns a new parallel execution strategy.
 func NewStrategy() *Strategy {
 	s := new(Strategy)
 	s.numGoroutines = 1
 	return s
 }
 
-// DefaultStrategy returns the default parallel strategy
+// DefaultStrategy returns the default parallel execution strategy.
+// This sets the number of goroutines equal to GOMAXPROCS.
 func DefaultStrategy() *Strategy {
 	s := new(Strategy)
 	s.numGoroutines = runtime.GOMAXPROCS(0)
 	return s
 }
 
-// NumGoroutines returns the number of goroutines that a strategy will use
+// NumGoroutines returns the number of goroutines that a strategy will use.
 func (s *Strategy) NumGoroutines() int {
 	return s.numGoroutines
 }
 
-// WithNumGoroutines sets the number of goroutines for a parallel strategy
+// WithNumGoroutines sets the number of goroutines for a parallel strategy.
 func (s *Strategy) WithNumGoroutines(numGoroutines int) *Strategy {
 	s.numGoroutines = numGoroutines
 	return s
 }
 
-// WithCPUProportion sets the number of goroutines based on a proportion of number of CPUs
+// WithCPUProportion sets the number of goroutines based on a proportion of number of CPUs,
+// with a minimum of 1.
 func (s *Strategy) WithCPUProportion(p float64) *Strategy {
 	numCPU := runtime.NumCPU()
 	pCPU := p * float64(numCPU)
@@ -44,7 +46,15 @@ func (s *Strategy) WithCPUProportion(p float64) *Strategy {
 	return s
 }
 
-// For executes a loop in parallel from i = 0 while i < N using the given strategy
+// For executes N iterations of a function body divided equally among a number of goroutines.
+// This function correlates directly to a for loop of the form:
+//
+// 		for i := 0; i < N; i++ {
+//			loopBody(i)
+// 		}
+//
+// Note that parallelism is likely but not necessarily guaranteed.
+// Replacing existing for loops with this construct may accelerate parallelizable workloads.
 func (s *Strategy) For(N int, loopBody func(i int)) {
 	loopBodyWithGrID := func(i, _ int) {
 		loopBody(i)
@@ -53,7 +63,13 @@ func (s *Strategy) For(N int, loopBody func(i int)) {
 	s.ForWithGrID(N, loopBodyWithGrID)
 }
 
-// ForWithGrID executes a loop in parallel from i = 0 while i < N using the given strategy
+// ForWithGrID executes N iterations of a function body divided equally among a number of goroutines.
+// Unlike For, ForWithGrID also incorporates a grID argument that may be used in the loop body.
+// The grID argument is the goroutine ID and may be used for a partial reduction at the goroutine level.
+// Goroutine IDs range from 0 to NumGoroutines - 1.
+//
+// Note that parallelism is likely but not necessarily guaranteed.
+// Replacing existing for loops with this construct may accelerate parallelizable workloads.
 func (s *Strategy) ForWithGrID(N int, loopBody func(i, grID int)) {
 	var wg sync.WaitGroup
 	wg.Add(s.numGoroutines)
