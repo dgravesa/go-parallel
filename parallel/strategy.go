@@ -12,15 +12,8 @@ type Strategy struct {
 }
 
 // NewStrategy returns a new parallel execution strategy.
+// The default number of goroutines is equal to GOMAXPROCS.
 func NewStrategy() *Strategy {
-	s := new(Strategy)
-	s.numGoroutines = 1
-	return s
-}
-
-// DefaultStrategy returns the default parallel execution strategy.
-// This sets the number of goroutines equal to GOMAXPROCS.
-func DefaultStrategy() *Strategy {
 	s := new(Strategy)
 	s.numGoroutines = runtime.GOMAXPROCS(0)
 	return s

@@ -21,20 +21,6 @@ func Test_StrategyFor_WithNewStrategy_ComputesCorrectResult(t *testing.T) {
 	assertFloat64SlicesEqual(t, expectedResult, slice, "")
 }
 
-func Test_StrategyFor_WithDefaultStrategy_ComputesCorrectResult(t *testing.T) {
-	// arrange
-	slice := []float64{0.0, 3.75, -1.5, -2.0, 0.5, 0.75, 1.0, 4.5, -15.0}
-	expectedResult := []float64{1.0, 4.75, -0.5, -1.0, 1.5, 1.75, 2.0, 5.5, -14.0}
-
-	// act
-	parallel.DefaultStrategy().For(len(slice), func(i int) {
-		slice[i] += 1.0
-	})
-
-	// assert
-	assertFloat64SlicesEqual(t, expectedResult, slice, "")
-}
-
 func Test_StrategyFor_WithVaryingNumGoroutines_ComputesCorrectResult(t *testing.T) {
 	// arrange
 	inputArray := []float64{0.0, 3.75, -1.5, -2.0, 0.5, 0.75, 1.0}
@@ -45,7 +31,7 @@ func Test_StrategyFor_WithVaryingNumGoroutines_ComputesCorrectResult(t *testing.
 		actualOutput := make([]float64, N)
 
 		// act
-		parallel.DefaultStrategy().WithNumGoroutines(numGRs).For(N, func(i int) {
+		parallel.NewStrategy().WithNumGoroutines(numGRs).For(N, func(i int) {
 			actualOutput[i] = 2.0 * inputArray[i]
 		})
 
@@ -63,7 +49,7 @@ func Test_StrategyForWithGrID_ComputesCorrectResult(t *testing.T) {
 
 	for _, numGR := range []int{1, 2, 3, 4} {
 		partialSums := make([]int, numGR)
-		s := parallel.DefaultStrategy().WithNumGoroutines(numGR)
+		s := parallel.NewStrategy().WithNumGoroutines(numGR)
 
 		// act
 		s.ForWithGrID(N, func(i, grID int) {
@@ -99,7 +85,7 @@ func Test_StrategyWithCPUProportion_HasAtLeastOneGoroutine(t *testing.T) {
 func Test_StrategyNumGoroutines_ReturnsExpectedResult(t *testing.T) {
 	// arrange
 	expected := 3
-	s := parallel.DefaultStrategy().WithNumGoroutines(expected)
+	s := parallel.NewStrategy().WithNumGoroutines(expected)
 
 	// act
 	actual := s.NumGoroutines()
