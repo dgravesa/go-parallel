@@ -2,6 +2,8 @@ package parallel_test
 
 import (
 	"fmt"
+	"math"
+	"math/rand"
 	"testing"
 
 	"github.com/dgravesa/go-parallel/parallel"
@@ -140,5 +142,22 @@ func Test_WithNumGoroutines_ReturnsValidStrategy(t *testing.T) {
 	// assert
 	if s.NumGoroutines() != numGoroutines {
 		t.Errorf("expected %d, actual %d\n", numGoroutines, s.NumGoroutines())
+	}
+}
+
+func BenchmarkForSinc(b *testing.B) {
+	N := 1000000
+	inputArray := make([]float64, N)
+	outputArray := make([]float64, N)
+	for i := 0; i < N; i++ {
+		inputArray[i] = 10 * (rand.Float64() - 0.5)
+	}
+
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		parallel.For(N, func(i int) {
+			xPi := inputArray[i] * math.Pi
+			outputArray[i] = math.Sin(xPi) / xPi
+		})
 	}
 }
