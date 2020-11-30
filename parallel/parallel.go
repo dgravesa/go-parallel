@@ -10,7 +10,7 @@ package parallel
 // Note that parallelism is likely but not necessarily guaranteed.
 // Replacing existing for loops with this construct may accelerate parallelizable workloads.
 func For(N int, loopBody func(i int)) {
-	DefaultStrategy().For(N, loopBody)
+	NewStrategy().For(N, loopBody)
 }
 
 // ForWithGrID executes N iterations of a function body divided equally among GOMAXPROCS goroutines.
@@ -21,21 +21,21 @@ func For(N int, loopBody func(i int)) {
 // Note that parallelism is likely but not necessarily guaranteed.
 // Replacing existing for loops with this construct may accelerate parallelizable workloads.
 func ForWithGrID(N int, loopBody func(i, grID int)) {
-	DefaultStrategy().ForWithGrID(N, loopBody)
+	NewStrategy().ForWithGrID(N, loopBody)
 }
 
 // WithNumGoroutines returns a default strategy, but using a specific number of goroutines.
 func WithNumGoroutines(n int) *Strategy {
-	return DefaultStrategy().WithNumGoroutines(n)
+	return NewStrategy().WithNumGoroutines(n)
 }
 
 // WithCPUProportion returns a default strategy, but with the number of goroutines based on a
 // proportion of the number of CPUs.
 func WithCPUProportion(p float64) *Strategy {
-	return DefaultStrategy().WithCPUProportion(p)
+	return NewStrategy().WithCPUProportion(p)
 }
 
 // DefaultNumGoroutines returns the default number of goroutines.
 func DefaultNumGoroutines() int {
-	return DefaultStrategy().NumGoroutines()
+	return NewStrategy().NumGoroutines()
 }
