@@ -1,11 +1,12 @@
 // Package parallel provides constructs that enable parallel execution.
-// Using this package may help to accelerate loop bottlenecks, often with no refactors required.
+// Using this package may help to accelerate loop bottlenecks, often with minimal-to-no
+// refactor required.
 //
 // Motivation
 //
 // Go is designed for extreme concurrency.
 // Goroutines work well for this as they are considerably lightweight.
-// However, althought they are light, goroutines are not free.
+// However, goroutines are not free.
 // For for loops with many iterations, launching a goroutine per iteration may prove to be
 // overkill, resulting in slower execution than if the loop were to be run serially.
 //
