@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func Test_StrategyGRIndexBlock_ReturnsCorrectRange(t *testing.T) {
+func Test_ExecutorGRIndexBlock_ReturnsCorrectRange(t *testing.T) {
 	type TestCase struct {
 		numGR, grID, N      int
 		expStart, expFinish int
@@ -25,8 +25,8 @@ func Test_StrategyGRIndexBlock_ReturnsCorrectRange(t *testing.T) {
 
 	for i, tc := range testCases {
 		// act
-		s := NewStrategy().WithNumGoroutines(tc.numGR)
-		actualStart, actualFinish := s.grIndexBlock(tc.grID, tc.N)
+		e := NewExecutor().WithNumGoroutines(tc.numGR)
+		actualStart, actualFinish := e.grIndexBlock(tc.grID, tc.N)
 
 		// assert
 		if tc.expStart != actualStart || tc.expFinish != actualFinish {

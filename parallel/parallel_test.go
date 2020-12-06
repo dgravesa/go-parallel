@@ -132,16 +132,16 @@ func Test_ForWithGrID_ComputesCorrectResult(t *testing.T) {
 	}
 }
 
-func Test_WithNumGoroutines_ReturnsValidStrategy(t *testing.T) {
+func Test_WithNumGoroutines_ReturnsValidExecutor(t *testing.T) {
 	// arrange
 	numGoroutines := 3
 
 	// act
-	s := parallel.WithNumGoroutines(numGoroutines)
+	e := parallel.WithNumGoroutines(numGoroutines)
 
 	// assert
-	if s.NumGoroutines() != numGoroutines {
-		t.Errorf("expected %d, actual %d\n", numGoroutines, s.NumGoroutines())
+	if e.NumGoroutines() != numGoroutines {
+		t.Errorf("expected %d, actual %d\n", numGoroutines, e.NumGoroutines())
 	}
 }
 

@@ -7,13 +7,13 @@ import (
 	"github.com/dgravesa/go-parallel/parallel"
 )
 
-func Test_StrategyFor_WithNewStrategy_ComputesCorrectResult(t *testing.T) {
+func Test_ExecutorFor_WithNewExecutor_ComputesCorrectResult(t *testing.T) {
 	// arrange
 	slice := []float64{0.0, 3.75, -1.5, -2.0, 0.5, 0.75}
 	expectedResult := []float64{1.0, 4.75, -0.5, -1.0, 1.5, 1.75}
 
 	// act
-	parallel.NewStrategy().For(len(slice), func(i int) {
+	parallel.NewExecutor().For(len(slice), func(i int) {
 		slice[i] += 1.0
 	})
 
@@ -21,7 +21,7 @@ func Test_StrategyFor_WithNewStrategy_ComputesCorrectResult(t *testing.T) {
 	assertFloat64SlicesEqual(t, expectedResult, slice, "")
 }
 
-func Test_StrategyFor_WithVaryingNumGoroutines_ComputesCorrectResult(t *testing.T) {
+func Test_ExecutorFor_WithVaryingNumGoroutines_ComputesCorrectResult(t *testing.T) {
 	// arrange
 	inputArray := []float64{0.0, 3.75, -1.5, -2.0, 0.5, 0.75, 1.0}
 	expectedOutput := []float64{0.0, 7.5, -3.0, -4.0, 1.0, 1.5, 2.0}
@@ -31,7 +31,7 @@ func Test_StrategyFor_WithVaryingNumGoroutines_ComputesCorrectResult(t *testing.
 		actualOutput := make([]float64, N)
 
 		// act
-		parallel.NewStrategy().WithNumGoroutines(numGRs).For(N, func(i int) {
+		parallel.NewExecutor().WithNumGoroutines(numGRs).For(N, func(i int) {
 			actualOutput[i] = 2.0 * inputArray[i]
 		})
 
@@ -41,7 +41,7 @@ func Test_StrategyFor_WithVaryingNumGoroutines_ComputesCorrectResult(t *testing.
 	}
 }
 
-func Test_StrategyForWithGrID_ComputesCorrectResult(t *testing.T) {
+func Test_ExecutorForWithGrID_ComputesCorrectResult(t *testing.T) {
 	// arrange
 	inputArray := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
 	expectedSum := 15 * 16 / 2
@@ -49,10 +49,10 @@ func Test_StrategyForWithGrID_ComputesCorrectResult(t *testing.T) {
 
 	for _, numGR := range []int{1, 2, 3, 4} {
 		partialSums := make([]int, numGR)
-		s := parallel.NewStrategy().WithNumGoroutines(numGR)
+		e := parallel.NewExecutor().WithNumGoroutines(numGR)
 
 		// act
-		s.ForWithGrID(N, func(i, grID int) {
+		e.ForWithGrID(N, func(i, grID int) {
 			partialSums[grID] += inputArray[i]
 		})
 
@@ -67,28 +67,28 @@ func Test_StrategyForWithGrID_ComputesCorrectResult(t *testing.T) {
 	}
 }
 
-func Test_StrategyWithCPUProportion_HasAtLeastOneGoroutine(t *testing.T) {
+func Test_ExecutorWithCPUProportion_HasAtLeastOneGoroutine(t *testing.T) {
 	// arrange
 	p := 0.0
 	expected := 1
 
 	// arrange / act
-	s := parallel.NewStrategy().WithCPUProportion(p)
+	e := parallel.NewExecutor().WithCPUProportion(p)
 
 	// assert
-	actual := s.NumGoroutines()
+	actual := e.NumGoroutines()
 	if expected != actual {
 		t.Errorf("expected %d, actual %d\n", expected, actual)
 	}
 }
 
-func Test_StrategyNumGoroutines_ReturnsExpectedResult(t *testing.T) {
+func Test_ExecutorNumGoroutines_ReturnsExpectedResult(t *testing.T) {
 	// arrange
 	expected := 3
-	s := parallel.NewStrategy().WithNumGoroutines(expected)
+	e := parallel.NewExecutor().WithNumGoroutines(expected)
 
 	// act
-	actual := s.NumGoroutines()
+	actual := e.NumGoroutines()
 
 	// assert
 	if expected != actual {

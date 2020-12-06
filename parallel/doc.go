@@ -7,7 +7,7 @@
 // Go is designed for extreme concurrency.
 // Goroutines work well for this as they are considerably lightweight.
 // However, goroutines are not free.
-// For for loops with many iterations, launching a goroutine per iteration may prove to be
+// On for loops with many iterations, launching one goroutine per iteration may prove to be
 // overkill, resulting in slower execution than if the loop were to be run serially.
 //
 //		N := 10000000
