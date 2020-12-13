@@ -40,7 +40,7 @@ func ExampleFor_goroutineID() {
 	// Output: 55
 }
 
-func ExampleExecutor_WithNumGoroutines() {
+func ExampleWithNumGoroutines() {
 	x := []int{1, 2, 3, 4, 5, 6, 7}
 	N := len(x)
 	isEven := make([]bool, N)
@@ -60,7 +60,7 @@ func ExampleExecutor_WithNumGoroutines() {
 	// Output: [false true false true false true false]
 }
 
-func ExampleExecutor_WithCPUProportion() {
+func ExampleWithCPUProportion() {
 	x := []float64{1.2, 2.0, 1.9, 5.5, 3.4, 9.3, 6.4, 6.6}
 	N := len(x)
 	floor := make([]int, N)

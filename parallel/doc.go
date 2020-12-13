@@ -45,7 +45,7 @@
 //
 // 		// parallel package construct with 4 CPUs
 //		// ~130ms
-// 		parallel.For(N, func(i int) {
+// 		parallel.For(N, func(i, _ int) {
 // 			outputArray[i] = sinc(inputArray[i] * math.Pi)
 // 		})
 package parallel
