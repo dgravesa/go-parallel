@@ -26,7 +26,7 @@ func main() {
 		}
 	} else {
 		// run computation in parallel
-		parallel.For(N, func(i int) {
+		parallel.For(N, func(i, _ int) {
 			x[i] = i
 		})
 	}

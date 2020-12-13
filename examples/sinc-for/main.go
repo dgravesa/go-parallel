@@ -70,7 +70,7 @@ func main() {
 		}
 	} else {
 		executor := parallel.WithNumGoroutines(numCPU).WithStrategy(strategy)
-		executor.For(N, func(i int) {
+		executor.For(N, func(i, _ int) {
 			outputArray[i] = sinc(inputArray[i] * math.Pi)
 		})
 	}

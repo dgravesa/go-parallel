@@ -36,7 +36,7 @@ func main() {
 		// execute partial sums
 		psums := make([]int, parallel.DefaultNumGoroutines())
 
-		parallel.ForWithGrID(N, func(i, grID int) {
+		parallel.For(N, func(i, grID int) {
 			psums[grID] += x[i]
 		})
 

@@ -13,7 +13,7 @@ func Test_ExecutorFor_WithNewExecutor_ComputesCorrectResult(t *testing.T) {
 	expectedResult := []float64{1.0, 4.75, -0.5, -1.0, 1.5, 1.75}
 
 	// act
-	parallel.NewExecutor().For(len(slice), func(i int) {
+	parallel.NewExecutor().For(len(slice), func(i, _ int) {
 		slice[i] += 1.0
 	})
 
@@ -31,7 +31,7 @@ func Test_ExecutorFor_WithVaryingNumGoroutines_ComputesCorrectResult(t *testing.
 		actualOutput := make([]float64, N)
 
 		// act
-		parallel.NewExecutor().WithNumGoroutines(numGRs).For(N, func(i int) {
+		parallel.NewExecutor().WithNumGoroutines(numGRs).For(N, func(i, _ int) {
 			actualOutput[i] = 2.0 * inputArray[i]
 		})
 
@@ -41,7 +41,7 @@ func Test_ExecutorFor_WithVaryingNumGoroutines_ComputesCorrectResult(t *testing.
 	}
 }
 
-func Test_ExecutorForWithGrID_ComputesCorrectResult(t *testing.T) {
+func Test_ExecutorFor_UsingGrID_ComputesCorrectResult(t *testing.T) {
 	// arrange
 	inputArray := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
 	expectedSum := 15 * 16 / 2
@@ -52,7 +52,7 @@ func Test_ExecutorForWithGrID_ComputesCorrectResult(t *testing.T) {
 		e := parallel.NewExecutor().WithNumGoroutines(numGR)
 
 		// act
-		e.ForWithGrID(N, func(i, grID int) {
+		e.For(N, func(i, grID int) {
 			partialSums[grID] += inputArray[i]
 		})
 
@@ -67,7 +67,7 @@ func Test_ExecutorForWithGrID_ComputesCorrectResult(t *testing.T) {
 	}
 }
 
-func Test_ExecutorWithCPUProportion_HasAtLeastOneGoroutine(t *testing.T) {
+func Test_Executor_WithCPUProportion_HasAtLeastOneGoroutine(t *testing.T) {
 	// arrange
 	p := 0.0
 	expected := 1
@@ -82,7 +82,7 @@ func Test_ExecutorWithCPUProportion_HasAtLeastOneGoroutine(t *testing.T) {
 	}
 }
 
-func Test_ExecutorWithStrategy_ComputesCorrectResult(t *testing.T) {
+func Test_ExecutorFor_WithStrategy_ComputesCorrectResult(t *testing.T) {
 	// arrange
 	inputArray := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}
 	expectedSum := 17 * 18 / 2
@@ -101,7 +101,7 @@ func Test_ExecutorWithStrategy_ComputesCorrectResult(t *testing.T) {
 			e := parallel.NewExecutor().WithStrategy(strategy).WithNumGoroutines(numGR)
 
 			// act
-			e.ForWithGrID(N, func(i, grID int) {
+			e.For(N, func(i, grID int) {
 				partialSums[grID] += inputArray[i]
 			})
 
@@ -118,7 +118,7 @@ func Test_ExecutorWithStrategy_ComputesCorrectResult(t *testing.T) {
 	}
 }
 
-func Test_ExecutorNumGoroutines_ReturnsExpectedResult(t *testing.T) {
+func Test_Executor_NumGoroutines_ReturnsExpectedResult(t *testing.T) {
 	// arrange
 	expected := 3
 	e := parallel.NewExecutor().WithNumGoroutines(expected)

@@ -42,7 +42,7 @@ func (e *Executor) WithCPUProportion(p float64) *Executor {
 
 // WithStrategy sets the parallel strategy for execution.
 // Different parallel strategies vary on how work items are executed across goroutines.
-// The strategy types are defined as constants and follow the pattern `parallel.Strategy*`.
+// The strategy types are defined as constants and follow the pattern "parallel.Strategy*".
 // If an unrecognized value is specified, a default strategy will be chosen.
 func (e *Executor) WithStrategy(strategy StrategyType) *Executor {
 	switch strategy {
@@ -57,27 +57,19 @@ func (e *Executor) WithStrategy(strategy StrategyType) *Executor {
 }
 
 // For executes N iterations of a function body divided equally among a number of goroutines.
-// This function correlates directly to a for loop of the form:
-//
-// 		for i := 0; i < N; i++ {
-//			loopBody(i)
-// 		}
-//
 // Replacing existing for loops with this construct may accelerate parallelizable workloads.
-func (e *Executor) For(N int, loopBody func(i int)) {
-	loopBodyWithGrID := func(i, _ int) {
-		loopBody(i)
-	}
-
-	e.ForWithGrID(N, loopBodyWithGrID)
-}
-
-// ForWithGrID executes N iterations of a function body divided equally among a number of goroutines.
-// Unlike For, ForWithGrID also incorporates a grID argument that may be used in the loop body.
-// The grID argument is the goroutine ID and may be used for a partial reduction at the goroutine level.
+// The first argument to the loop body function is the loop iteration index.
+// If only this argument is used, then this function correlates directly to a for loop of the form:
+//
+//		for i := 0; i < N; i++ {
+//			loopBody(i, _)
+//		}
+//
+// The second argument to the loop body is the ID of the goroutine executing the loop iteration.
 // Goroutine IDs range from 0 to NumGoroutines - 1.
-//
-// Replacing existing for loops with this construct may accelerate parallelizable workloads.
-func (e *Executor) ForWithGrID(N int, loopBody func(i, grID int)) {
+// This ID can be used as part of the parallel logic; for example, the goroutine ID may be used
+// such that each goroutine computes a partial result independently, and then a final result could
+// be computed more quickly from the partial results immediately after the parallel loop.
+func (e *Executor) For(N int, loopBody func(i, grID int)) {
 	e.parallelStrategy.executeFor(e.numGoroutines, N, loopBody)
 }
