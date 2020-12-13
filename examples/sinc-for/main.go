@@ -3,27 +3,54 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
+	"os"
 	"runtime"
+	"runtime/pprof"
+	"runtime/trace"
 	"time"
 
 	"github.com/dgravesa/go-parallel/parallel"
 )
 
+var traceName string
+var cpuProfName string
+
+var traceFile *os.File
+var cpuProfFile *os.File
+
+var loopStart time.Time
+var loopTime time.Duration
+
 func main() {
 	var N int
 	var seed int64
 	var printSome int
+	var strategyName string
 	var runSerial bool
 	var numCPU int
 
 	flag.IntVar(&N, "N", 1000000, "number of work items")
-	flag.Int64Var(&seed, "Seed", 1, "random generator seed")
-	flag.IntVar(&printSome, "PrintSome", 0, "print first num values of result to verify")
-	flag.BoolVar(&runSerial, "Serial", false, "run non-parallelized for loop instead")
-	flag.IntVar(&numCPU, "NumGoroutines", runtime.NumCPU(), "number of goroutines to use in parallel loop")
+	flag.Int64Var(&seed, "seed", 1, "random generator seed")
+	flag.IntVar(&printSome, "printsome", 0, "print first num values of result to verify")
+	flag.BoolVar(&runSerial, "serial", false, "run non-parallelized for loop instead")
+	flag.IntVar(&numCPU, "numgr", runtime.NumCPU(), "number of goroutines to use in parallel loop")
+	flag.StringVar(&strategyName, "strategy", "contiguous",
+		"parallel strategy to use [\"atomic\", \"contiguous\"]")
+	flag.StringVar(&traceName, "trace", "", "output trace of loop to file")
+	flag.StringVar(&cpuProfName, "cpuprofile", "", "output CPU profile of loop to file")
 	flag.Parse()
+
+	strategies := map[string]parallel.StrategyType{
+		"atomic":     parallel.StrategyAtomicCounter,
+		"contiguous": parallel.StrategyContiguousBlocks,
+	}
+	strategy, ok := strategies[strategyName]
+	if !ok {
+		log.Fatalln("not a valid strategy:", strategyName)
+	}
 
 	// initialize input array of N values
 	rand.Seed(seed)
@@ -36,21 +63,21 @@ func main() {
 	outputArray := make([]float64, N)
 
 	// execute loop
-	startTime := time.Now()
+	preLoop()
 	if runSerial {
 		for i := 0; i < N; i++ {
 			outputArray[i] = sinc(inputArray[i] * math.Pi)
 		}
 	} else {
-		parallel.WithNumGoroutines(numCPU).For(N, func(i int) {
+		executor := parallel.WithNumGoroutines(numCPU).WithStrategy(strategy)
+		executor.For(N, func(i int) {
 			outputArray[i] = sinc(inputArray[i] * math.Pi)
 		})
 	}
-	stopTime := time.Now()
+	postLoop()
 
 	// print execution time
-	totalLoopDuration := stopTime.Sub(startTime)
-	fmt.Println(totalLoopDuration)
+	fmt.Println(loopTime)
 
 	// print some output values
 	if printSome > 0 {
@@ -64,4 +91,61 @@ func sinc(x float64) float64 {
 		return 1.0
 	}
 	return math.Sin(x) / x
+}
+
+func preLoop() {
+	if traceName != "" {
+		var err error
+		traceFile, err = os.Create(traceName)
+
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		err = trace.Start(traceFile)
+
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
+
+	if cpuProfName != "" {
+		var err error
+		cpuProfFile, err = os.Create(cpuProfName)
+
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		err = pprof.StartCPUProfile(cpuProfFile)
+
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
+
+	loopStart = time.Now()
+}
+
+func postLoop() {
+	loopStop := time.Now()
+	loopTime = loopStop.Sub(loopStart)
+
+	if traceName != "" {
+		trace.Stop()
+		err := traceFile.Close()
+
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
+
+	if cpuProfName != "" {
+		pprof.StopCPUProfile()
+		err := cpuProfFile.Close()
+
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
 }
