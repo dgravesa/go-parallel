@@ -4,7 +4,7 @@ import "sync"
 
 type contiguousBlocksStrategy struct{}
 
-func (contiguousBlocksStrategy) executeFor(numGR int, N int, loopBody func(i, grID int)) {
+func (contiguousBlocksStrategy) executeFor(numGR, N int, loopBody func(i, grID int)) {
 	var wg sync.WaitGroup
 	wg.Add(numGR)
 

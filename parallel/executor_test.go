@@ -72,13 +72,49 @@ func Test_ExecutorWithCPUProportion_HasAtLeastOneGoroutine(t *testing.T) {
 	p := 0.0
 	expected := 1
 
-	// arrange / act
+	// act
 	e := parallel.NewExecutor().WithCPUProportion(p)
 
 	// assert
 	actual := e.NumGoroutines()
 	if expected != actual {
 		t.Errorf("expected %d, actual %d\n", expected, actual)
+	}
+}
+
+func Test_ExecutorWithStrategy_ComputesCorrectResult(t *testing.T) {
+	// arrange
+	inputArray := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}
+	expectedSum := 17 * 18 / 2
+	N := len(inputArray)
+
+	strategies := map[string]parallel.StrategyType{
+		"atomic":     parallel.StrategyAtomicCounter,
+		"contiguous": parallel.StrategyContiguousBlocks,
+		"default":    parallel.StrategyType(-1),
+	}
+
+	for strategyName, strategy := range strategies {
+		// test each strategy with varying number of threads
+		for _, numGR := range []int{1, 2, 3, 4} {
+			partialSums := make([]int, numGR)
+			e := parallel.NewExecutor().WithStrategy(strategy).WithNumGoroutines(numGR)
+
+			// act
+			e.ForWithGrID(N, func(i, grID int) {
+				partialSums[grID] += inputArray[i]
+			})
+
+			// assert
+			actualSum := 0
+			for _, partialSum := range partialSums {
+				actualSum += partialSum
+			}
+			if expectedSum != actualSum {
+				t.Errorf("%s strategy, %d threads) expected %d, actual %d\n",
+					strategyName, numGR, expectedSum, actualSum)
+			}
+		}
 	}
 }
 

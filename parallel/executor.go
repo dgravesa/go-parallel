@@ -48,6 +48,8 @@ func (e *Executor) WithStrategy(strategy StrategyType) *Executor {
 	switch strategy {
 	case StrategyContiguousBlocks:
 		e.parallelStrategy = new(contiguousBlocksStrategy)
+	case StrategyAtomicCounter:
+		e.parallelStrategy = new(atomicCounterStrategy)
 	default:
 		e.parallelStrategy = defaultStrategy()
 	}

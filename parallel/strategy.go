@@ -17,7 +17,7 @@ const (
 )
 
 type strategy interface {
-	executeFor(numGR int, N int, loopBody func(i, grID int))
+	executeFor(numGR, N int, loopBody func(i, grID int))
 }
 
 func defaultStrategy() strategy {

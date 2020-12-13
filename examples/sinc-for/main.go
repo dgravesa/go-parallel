@@ -28,6 +28,7 @@ func main() {
 	var N int
 	var seed int64
 	var printSome int
+	var strategyName string
 	var runSerial bool
 	var numCPU int
 
@@ -36,9 +37,20 @@ func main() {
 	flag.IntVar(&printSome, "printsome", 0, "print first num values of result to verify")
 	flag.BoolVar(&runSerial, "serial", false, "run non-parallelized for loop instead")
 	flag.IntVar(&numCPU, "numgr", runtime.NumCPU(), "number of goroutines to use in parallel loop")
+	flag.StringVar(&strategyName, "strategy", "contiguous",
+		"parallel strategy to use [\"atomic\", \"contiguous\"]")
 	flag.StringVar(&traceName, "trace", "", "output trace of loop to file")
 	flag.StringVar(&cpuProfName, "cpuprofile", "", "output CPU profile of loop to file")
 	flag.Parse()
+
+	strategies := map[string]parallel.StrategyType{
+		"atomic":     parallel.StrategyAtomicCounter,
+		"contiguous": parallel.StrategyContiguousBlocks,
+	}
+	strategy, ok := strategies[strategyName]
+	if !ok {
+		log.Fatalln("not a valid strategy:", strategyName)
+	}
 
 	// initialize input array of N values
 	rand.Seed(seed)
@@ -57,7 +69,8 @@ func main() {
 			outputArray[i] = sinc(inputArray[i] * math.Pi)
 		}
 	} else {
-		parallel.WithNumGoroutines(numCPU).For(N, func(i int) {
+		executor := parallel.WithNumGoroutines(numCPU).WithStrategy(strategy)
+		executor.For(N, func(i int) {
 			outputArray[i] = sinc(inputArray[i] * math.Pi)
 		})
 	}
