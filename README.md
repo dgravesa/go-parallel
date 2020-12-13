@@ -9,7 +9,7 @@ for i := 0; i < N; i++ {
 }
 
 // with parallel construct ~130ms on 4 cores
-parallel.For(N, func(i int) {
+parallel.For(N, func(i, _ int) {
     outputArray[i] = sinc(inputArray[i] * math.Pi)
 })
 ```
