@@ -1,25 +1,21 @@
 package parallel
 
-// For executes N iterations of a function body divided equally among GOMAXPROCS goroutines.
-// This function correlates directly to a for loop of the form:
-//
-// 		for i := 0; i < N; i++ {
-//			loopBody(i)
-// 		}
-//
+// For executes N iterations of a function body divided equally among a number of goroutines.
 // Replacing existing for loops with this construct may accelerate parallelizable workloads.
-func For(N int, loopBody func(i int)) {
-	NewExecutor().For(N, loopBody)
-}
-
-// ForWithGrID executes N iterations of a function body divided equally among GOMAXPROCS goroutines.
-// Unlike For, ForWithGrID also incorporates a grID argument that may be used in the loop body.
-// The grID argument is the goroutine ID and may be used for a partial reduction at the goroutine level.
+// The first argument to the loop body function is the loop iteration index.
+// If only this argument is used, then this function correlates directly to a for loop of the form:
+//
+//		for i := 0; i < N; i++ {
+//			loopBody(i, _)
+//		}
+//
+// The second argument to the loop body is the ID of the goroutine executing the loop iteration.
 // Goroutine IDs range from 0 to NumGoroutines - 1.
-//
-// Replacing existing for loops with this construct may accelerate parallelizable workloads.
-func ForWithGrID(N int, loopBody func(i, grID int)) {
-	NewExecutor().ForWithGrID(N, loopBody)
+// This ID can be used as part of the parallel logic; for example, the goroutine ID may be used
+// such that each goroutine computes a partial result independently, and then a final result could
+// be computed more quickly from the partial results immediately after the parallel loop.
+func For(N int, loopBody func(i, grID int)) {
+	NewExecutor().For(N, loopBody)
 }
 
 // WithNumGoroutines returns a default executor, but using a specific number of goroutines.
