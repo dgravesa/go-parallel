@@ -7,8 +7,8 @@ import (
 
 // Executor contains the parallel execution parameters.
 type Executor struct {
-	numGoroutines int
-	strategy
+	numGoroutines    int
+	parallelStrategy strategy
 }
 
 // NewExecutor returns a new parallel executor.
@@ -16,7 +16,7 @@ type Executor struct {
 func NewExecutor() *Executor {
 	e := new(Executor)
 	e.numGoroutines = runtime.GOMAXPROCS(0)
-	e.strategy = defaultStrategy()
+	e.parallelStrategy = defaultStrategy()
 	return e
 }
 
@@ -40,16 +40,16 @@ func (e *Executor) WithCPUProportion(p float64) *Executor {
 	return e
 }
 
-// WithStrategy sets the parallel strategy to execute on.
-// Different parallel strategies vary on how work items are allocated to the goroutines.
+// WithStrategy sets the parallel strategy for execution.
+// Different parallel strategies vary on how work items are executed across goroutines.
 // The strategy types are defined as constants and follow the pattern `parallel.Strategy*`.
 // If an unrecognized value is specified, a default strategy will be chosen.
-func (e *Executor) WithStrategy(s StrategyType) *Executor {
-	switch s {
+func (e *Executor) WithStrategy(strategy StrategyType) *Executor {
+	switch strategy {
 	case StrategyContiguousBlocks:
-		e.strategy = new(contiguousBlocksStrategy)
+		e.parallelStrategy = new(contiguousBlocksStrategy)
 	default:
-		e.strategy = defaultStrategy()
+		e.parallelStrategy = defaultStrategy()
 	}
 	return e
 }
@@ -77,5 +77,5 @@ func (e *Executor) For(N int, loopBody func(i int)) {
 //
 // Replacing existing for loops with this construct may accelerate parallelizable workloads.
 func (e *Executor) ForWithGrID(N int, loopBody func(i, grID int)) {
-	e.executeFor(e.numGoroutines, N, loopBody)
+	e.parallelStrategy.executeFor(e.numGoroutines, N, loopBody)
 }
