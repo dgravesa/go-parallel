@@ -22,6 +22,8 @@
 // 		wg.Add(N)
 // 		for i := 0; i < N; i++ {
 // 			go func(i int) {
+//				defer wg.Done()
+//
 //				// some arbitrary time-consuming task
 // 				outputs[i] = processInput(inputs[i])
 // 			}(i)
