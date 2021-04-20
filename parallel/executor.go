@@ -5,13 +5,13 @@ import (
 	"runtime"
 )
 
-// Executor contains the parallel execution parameters.
+// Executor is the core type used to execute parallel loops.
 type Executor struct {
 	numGoroutines    int
 	parallelStrategy strategy
 }
 
-// NewExecutor returns a new parallel executor.
+// NewExecutor returns a new parallel executor instance.
 // The default number of goroutines is equal to GOMAXPROCS.
 func NewExecutor() *Executor {
 	e := new(Executor)
