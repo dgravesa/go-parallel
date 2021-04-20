@@ -1,6 +1,32 @@
-// Package parallel provides constructs that enable parallel execution.
-// Using this package may help to accelerate loop bottlenecks, often with minimal-to-no
-// refactor required.
+// Package parallel provides a looping construct that enables parallel execution,
+// inspired by OpenMP's "parallel for" pragmas in C, C++ and Fortran.
+//
+// Introduction
+//
+// The parallel package makes it easy to accelerate parallelizable loops on multicore systems:
+//
+// 		// loop using the parallel package
+// 		parallel.For(N, func(i, _ int) {
+//			// some arbitrary time-consuming task
+// 			outputs[i] = processInput(inputs[i])
+// 		})
+//
+// At its core, the parallel package is a wrapper around a common pattern
+// for parallelization in Go using sync.WaitGroup:
+//
+// 		N := len(inputs)
+// 		outputs := make([]result, N)
+//
+// 		// same loop, but using sync.WaitGroup
+// 		var wg sync.WaitGroup
+// 		wg.Add(N)
+// 		for i := 0; i < N; i++ {
+// 			go func(i int) {
+//				// some arbitrary time-consuming task
+// 				outputs[i] = processInput(inputs[i])
+// 			}(i)
+// 		}
+// 		wg.Wait()
 //
 // Motivation
 //
@@ -38,14 +64,21 @@
 //			}(i)
 //		}
 //
-// The constructs provided by the parallel package automatically handle goroutine creation and
-// assignment of work.
-// By limiting the number of goroutines based on the number of CPUs,
-// the parallel constructs avoid the overhead that results from excessive goroutine creation.
-//
 // 		// parallel package construct with 4 CPUs
 //		// ~130ms
 // 		parallel.For(N, func(i, _ int) {
 // 			outputArray[i] = sinc(inputArray[i] * math.Pi)
 // 		})
+//
+// The constructs provided by the parallel package automatically handle goroutine management and
+// distribution of work.
+// By default, the number of goroutines is set to the number of CPUs.
+// This way, the parallel constructs avoid the overhead that results from excessive goroutine
+// creation and scheduling.
+//
+// Best Practices
+//
+// - In loops where the amount of work or time varies by iteration,
+// use the atomic counter strategy instead of the default contiguous blocks.
+//
 package parallel

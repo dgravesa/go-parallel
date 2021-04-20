@@ -1,6 +1,7 @@
 package parallel
 
-// For executes N iterations of a function body divided equally among a number of goroutines.
+// For executes N iterations of a function body, where the iterations are parallelized among a
+// number of goroutines.
 // Replacing existing for loops with this construct may accelerate parallelizable workloads.
 // The first argument to the loop body function is the loop iteration index.
 // If only this argument is used, then this function correlates directly to a for loop of the form:
@@ -29,7 +30,8 @@ func WithCPUProportion(p float64) *Executor {
 	return NewExecutor().WithCPUProportion(p)
 }
 
-// DefaultNumGoroutines returns the default number of goroutines.
+// DefaultNumGoroutines returns the default number of goroutines for parallel.For() and
+// parallel.NewExecutor().
 func DefaultNumGoroutines() int {
 	return NewExecutor().NumGoroutines()
 }
