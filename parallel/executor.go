@@ -6,6 +6,7 @@ import (
 )
 
 // Executor is the core type used to execute parallel loops.
+// New instances are created using parallel.NewExecutor().
 type Executor struct {
 	numGoroutines    int
 	parallelStrategy strategy
@@ -20,12 +21,12 @@ func NewExecutor() *Executor {
 	return e
 }
 
-// NumGoroutines returns the number of goroutines that an executor will use.
+// NumGoroutines returns the number of goroutines that an executor is configured to use.
 func (e *Executor) NumGoroutines() int {
 	return e.numGoroutines
 }
 
-// WithNumGoroutines sets the number of goroutines for a parallel executor.
+// WithNumGoroutines sets the number of goroutines for a parallel executor to use.
 func (e *Executor) WithNumGoroutines(numGoroutines int) *Executor {
 	e.numGoroutines = numGoroutines
 	return e
@@ -41,8 +42,8 @@ func (e *Executor) WithCPUProportion(p float64) *Executor {
 }
 
 // WithStrategy sets the parallel strategy for execution.
-// Different parallel strategies vary on how work items are executed across goroutines.
-// The strategy types are defined as constants and follow the pattern "parallel.Strategy*".
+// Different parallel strategies vary on how work items are distributed among goroutines.
+// The strategy types are defined as constants and follow the pattern parallel.Strategy*.
 // If an unrecognized value is specified, a default strategy will be chosen.
 func (e *Executor) WithStrategy(strategy StrategyType) *Executor {
 	switch strategy {
@@ -56,7 +57,8 @@ func (e *Executor) WithStrategy(strategy StrategyType) *Executor {
 	return e
 }
 
-// For executes N iterations of a function body divided equally among a number of goroutines.
+// For executes N iterations of a function body, where the iterations are parallelized among a
+// number of goroutines.
 // Replacing existing for loops with this construct may accelerate parallelizable workloads.
 // The first argument to the loop body function is the loop iteration index.
 // If only this argument is used, then this function correlates directly to a for loop of the form:

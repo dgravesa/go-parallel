@@ -1,7 +1,15 @@
-// Package parallel provides looping constructs that enable parallel execution,
-// inspired by OpenMP.
+// Package parallel provides a looping construct that enables parallel execution,
+// inspired by OpenMP's "parallel for" pragmas in C, C++ and Fortran.
 //
 // Introduction
+//
+// The parallel package makes it easy to accelerate parallelizable loops on multicore systems:
+//
+// 		// loop using the parallel package
+// 		parallel.For(N, func(i, _ int) {
+//			// some arbitrary time-consuming task
+// 			outputs[i] = processInput(inputs[i])
+// 		})
 //
 // At its core, the parallel package is a wrapper around a common pattern
 // for parallelization in Go using sync.WaitGroup:
@@ -9,7 +17,7 @@
 // 		N := len(inputs)
 // 		outputs := make([]result, N)
 //
-// 		// using sync.WaitGroup
+// 		// same loop, but using sync.WaitGroup
 // 		var wg sync.WaitGroup
 // 		wg.Add(N)
 // 		for i := 0; i < N; i++ {
@@ -19,12 +27,6 @@
 // 			}(i)
 // 		}
 // 		wg.Wait()
-//
-// 		// same loop, but using the parallel package
-// 		parallel.For(N, func(i, _ int) {
-//			// some arbitrary time-consuming task
-// 			outputs[i] = processInput(inputs[i])
-// 		})
 //
 // Motivation
 //
@@ -70,27 +72,13 @@
 //
 // The constructs provided by the parallel package automatically handle goroutine management and
 // distribution of work.
-// By default, the number of goroutines is based on the number of CPUs.
+// By default, the number of goroutines is set to the number of CPUs.
 // This way, the parallel constructs avoid the overhead that results from excessive goroutine
 // creation and scheduling.
 //
 // Best Practices
 //
-// 1. For workloads where the time in each iteration tends to vary,
+// - In loops where the amount of work or time varies by iteration,
 // use the atomic counter strategy instead of the default contiguous blocks.
-//
-// 2. The parallel package may be used as a convenience for managing batches of API requests.
-// For example, an array of 80 API requests could be limited to 10 concurrent requests as follows:
-//
-// 		N := len(requests) // N = 80
-// 		responses := make([]Response, N)
-//
-// 		// NOTE: atomic counter strategy since API response times tend to vary.
-// 		executor := parallel.WithNumGoroutines(10).WithStrategy(parallel.StrategyAtomicCounter)
-//
-// 		// execute up to 10 requests in parallel at a time
-// 		executor.For(N, func(i, _ int) {
-// 			responses[i] = executeRequest(requests[i])
-// 		})
 //
 package parallel
