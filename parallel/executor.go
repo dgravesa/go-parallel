@@ -44,7 +44,7 @@ func (e *Executor) WithCPUProportion(p float64) *Executor {
 // WithStrategy sets the parallel strategy for execution.
 // Different parallel strategies vary on how work items are distributed among goroutines.
 // The strategy types are defined as constants and follow the pattern parallel.Strategy*.
-// If an unrecognized value is specified, a default strategy will be chosen.
+// If an unrecognized value is specified, the default contiguous blocks strategy will be used.
 func (e *Executor) WithStrategy(strategy StrategyType) *Executor {
 	switch strategy {
 	case StrategyContiguousBlocks:

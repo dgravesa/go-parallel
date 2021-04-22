@@ -1,6 +1,7 @@
 # go-parallel
 
-Go constructs that may enable parallel execution!
+Package `parallel` provides a construct to simplify parallel for loop execution in Go,
+inspired by OpenMP's "parallel for" pragmas in C, C++ and Fortran.
 
 ```go
 /// without parallel construct ~300ms
@@ -15,6 +16,12 @@ parallel.For(N, func(i, _ int) {
 ```
 
 For more, visit the [GoDoc](https://godoc.org/github.com/dgravesa/go-parallel/parallel)
+
+## Installation
+
+```
+go get -v github.com/dgravesa/go-parallel
+```
 
 ## Basic Usage
 

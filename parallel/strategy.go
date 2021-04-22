@@ -10,7 +10,7 @@ const (
 	// per goroutine as contiguous blocks.
 	// The contiguous blocks strategy works well for most parallelizable loops.
 	// The atomic counter strategy may be faster when loop iterations vary in execution time or
-	// when the execution time per iteration is greater than 1 millisecond.
+	// when the execution time per iteration is greater than 1 microsecond.
 	StrategyContiguousBlocks = StrategyType(iota)
 
 	// StrategyAtomicCounter refers to a strategy that uses an atomic counter so goroutines can

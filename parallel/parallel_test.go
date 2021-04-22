@@ -76,6 +76,22 @@ func Test_WithNumGoroutines_ReturnsValidExecutor(t *testing.T) {
 	}
 }
 
+func Test_WithStrategy_ReturnsValidExecutor(t *testing.T) {
+	// arrange
+	strategy := parallel.StrategyAtomicCounter
+	resultArray := []float64{0, 0, 0, 0, 0, 0, 0}
+	expectedResult := []float64{0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5}
+	N := len(resultArray)
+
+	// act
+	parallel.WithStrategy(strategy).For(N, func(i, _ int) {
+		resultArray[i] = float64(i) + 0.5
+	})
+
+	// assert
+	assertFloat64SlicesEqual(t, expectedResult, resultArray, "")
+}
+
 func BenchmarkForSinc(b *testing.B) {
 	N := 1000000
 	inputArray := make([]float64, N)
