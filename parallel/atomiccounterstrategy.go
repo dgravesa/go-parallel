@@ -12,9 +12,9 @@ func (atomicCounterStrategy) executeFor(numGR, N int, loopBody func(i, grID int)
 	wg.Add(numGR)
 
 	// counter and fetcher
-	counter := int32(-1)
+	counter := int64(-1)
 	fetchIndex := func() int {
-		return int(atomic.AddInt32(&counter, 1))
+		return int(atomic.AddInt64(&counter, 1))
 	}
 
 	for grID := 0; grID < numGR; grID++ {
