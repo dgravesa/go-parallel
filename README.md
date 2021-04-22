@@ -1,6 +1,6 @@
 # go-parallel
 
-Package `parallel` provides a looping construct that enables parallel execution,
+Package `parallel` provides a construct to simplify parallel for loop execution in Go,
 inspired by OpenMP's "parallel for" pragmas in C, C++ and Fortran.
 
 ```go
