@@ -5,30 +5,32 @@
 //
 // The parallel package makes it easy to accelerate parallelizable loops on multicore systems:
 //
-// 		// loop using the parallel package
+// 		// loop using the parallel construct in this package,
+//		// a general example that computes N outputs from a slice of N independent inputs
+//
 // 		parallel.For(N, func(i, _ int) {
-//			// some arbitrary time-consuming task
-// 			outputs[i] = processInput(inputs[i])
+// 			outputs[i] = computeResult(inputs[i])
 // 		})
 //
 // At its core, the parallel package is a wrapper around a common pattern
-// for parallelization in Go using sync.WaitGroup:
+// for parallelization in Go using sync.WaitGroup, similar to:
 //
-// 		N := len(inputs)
-// 		outputs := make([]result, N)
+// 		// same result as before, but using sync.WaitGroup
 //
-// 		// same loop, but using sync.WaitGroup
 // 		var wg sync.WaitGroup
 // 		wg.Add(N)
 // 		for i := 0; i < N; i++ {
 // 			go func(i int) {
 //				defer wg.Done()
-//
-//				// some arbitrary time-consuming task
-// 				outputs[i] = processInput(inputs[i])
+// 				outputs[i] = computeResult(inputs[i])
 // 			}(i)
 // 		}
 // 		wg.Wait()
+//
+// Whereas this snippet using sync.WaitGroup creates a goroutine for each loop iteration, the
+// parallel construct in this package abstracts the goroutine logic and distributes the work
+// automatically and intelligently among a smaller number of goroutines, minimizing the overhead
+// that results from excessive goroutine lifecycling and scheduling.
 //
 // Motivation
 //
@@ -78,9 +80,12 @@
 // This way, the parallel constructs avoid the overhead that results from excessive goroutine
 // creation and scheduling.
 //
-// Best Practices
+// Best Practices - Selecting a Strategy
 //
-// - In loops where the amount of work or time varies by iteration,
-// use the atomic counter strategy instead of the default contiguous blocks.
+// • Generally, the default StrategyContiguousBlocks is recommended in all loops when each loop
+// index takes less than one microsecond.
+//
+// • In loops where the amount of work or time varies by index, using StrategyAtomicCounter may
+// help to balance work more evenly among goroutines, resulting in faster loop execution.
 //
 package parallel
