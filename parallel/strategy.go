@@ -2,7 +2,8 @@ package parallel
 
 // StrategyType identifies a parallel strategy.
 // Different parallel strategies vary on how work items are executed across goroutines.
-// The strategy types are defined as constants and follow the pattern "parallel.Strategy*".
+// The available strategy types are defined as constants and follow the naming convention
+// Strategy*.
 type StrategyType int
 
 const (

@@ -1,5 +1,9 @@
 package parallel
 
+import "runtime"
+
+var defaultNumGoroutines = runtime.GOMAXPROCS(0)
+
 // For executes N iterations of a function body, where the iterations are parallelized among a
 // number of goroutines.
 // Replacing existing for loops with this construct may accelerate parallelizable workloads.
@@ -32,14 +36,29 @@ func WithCPUProportion(p float64) *Executor {
 
 // WithStrategy returns a default executor, but with a particular parallel strategy for execution.
 // Different parallel strategies vary on how work items are distributed among goroutines.
-// The strategy types are defined as constants and follow the pattern parallel.Strategy*.
+// The strategy types are defined as constants and follow the naming convention Strategy*.
 // If an unrecognized value is specified, the default contiguous blocks strategy will be used.
 func WithStrategy(strategy StrategyType) *Executor {
 	return NewExecutor().WithStrategy(strategy)
 }
 
-// DefaultNumGoroutines returns the default number of goroutines for parallel.For() and
-// parallel.NewExecutor().
+// SetDefaultNumGoroutines sets the default number of goroutines for For() and NewExecutor(). At
+// start time, the default is initialized to the result of runtime.GOMAXPROCS(0). If numGoroutines
+// is less than 1, the default will be set to 1.
+func SetDefaultNumGoroutines(numGoroutines int) {
+	defaultNumGoroutines = maxInt(numGoroutines, 1)
+}
+
+func maxInt(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+// DefaultNumGoroutines returns the default number of goroutines for For() and NewExecutor().
+// Unless specified otherwise using SetDefaultNumGoroutines(), the default number of goroutines is
+// equal to the result of runtime.GOMAXPROCS(0) at start time.
 func DefaultNumGoroutines() int {
-	return NewExecutor().NumGoroutines()
+	return defaultNumGoroutines
 }

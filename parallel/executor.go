@@ -6,17 +6,16 @@ import (
 )
 
 // Executor is the core type used to execute parallel loops.
-// New instances are created using parallel.NewExecutor().
+// New instances are created using NewExecutor().
 type Executor struct {
 	numGoroutines    int
 	parallelStrategy strategy
 }
 
 // NewExecutor returns a new parallel executor instance.
-// The default number of goroutines is equal to GOMAXPROCS.
 func NewExecutor() *Executor {
 	e := new(Executor)
-	e.numGoroutines = runtime.GOMAXPROCS(0)
+	e.numGoroutines = DefaultNumGoroutines()
 	e.parallelStrategy = defaultStrategy()
 	return e
 }
@@ -43,7 +42,7 @@ func (e *Executor) WithCPUProportion(p float64) *Executor {
 
 // WithStrategy sets the parallel strategy for execution.
 // Different parallel strategies vary on how work items are distributed among goroutines.
-// The strategy types are defined as constants and follow the pattern parallel.Strategy*.
+// The strategy types are defined as constants and follow the naming convention Strategy*.
 // If an unrecognized value is specified, the default contiguous blocks strategy will be used.
 func (e *Executor) WithStrategy(strategy StrategyType) *Executor {
 	switch strategy {
