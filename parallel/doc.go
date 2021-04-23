@@ -80,6 +80,57 @@
 // This way, the parallel constructs avoid the overhead that results from excessive goroutine
 // creation and scheduling.
 //
+// Use Cases
+//
+// In general, the parallel package may be used to distribute N loop iterations across a fixed
+// number of goroutines. Some use cases include:
+//
+// • Accelerating embarrassingly parallel for loops, such as large vector operations.
+//
+// 		N := 10000000
+//
+// 		// for i := 0; i < N; i++ {
+// 		// 	z[i] = x[i] + y[i]
+// 		// }
+//
+//		// equivalent using parallel package
+// 		parallel.For(N, func(i, _ int) {
+// 			z[i] = x[i] + y[i]
+// 		})
+//
+// • A replacement for the common sync.WaitGroup pattern:
+//
+// 		// var wg sync.WaitGroup
+// 		// wg.Add(N)
+// 		// for i := 0; i < N; i++ {
+// 		// 	go func(i int) {
+// 		// 		defer wg.Done()
+// 		// 		executeTask(tasks[i])
+// 		// 	}(i)
+// 		// }
+// 		// wg.Wait()
+//
+// 		// equivalent using parallel package
+// 		parallel.WithNumGoroutines(N).For(N, func(i, _ int) {
+// 			executeTask(tasks[i])
+// 		})
+//
+// • Batching API requests. For example, if I need to make 200 independent API requests, but want
+// to limit to 30 active requests at a time, I can accomplish this using the parallel package as
+// follows:
+//
+// 		concurrency := 30
+// 		numRequests := 200
+//
+// 		// NOTE: use StrategyAtomicCounter since API requests tend to vary in response times
+// 		requestsExecutor := parallel.NewExecutor().
+// 			WithStrategy(parallel.StrategyAtomicCounter).
+// 			WithNumGoroutines(concurrency)
+//
+// 		requestsExecutor.For(numRequests, func(i, _ int) {
+// 			responses[i] = executeAPIRequest(requests[i])
+// 		})
+//
 // Best Practices - Selecting a Strategy
 //
 // • Generally, the default StrategyContiguousBlocks is recommended in all loops when each loop

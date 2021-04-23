@@ -92,6 +92,35 @@ func Test_WithStrategy_ReturnsValidExecutor(t *testing.T) {
 	assertFloat64SlicesEqual(t, expectedResult, resultArray, "")
 }
 
+func Test_SetDefaultNumGoroutines_WithPositiveInteger_SetsToThatInteger(t *testing.T) {
+	// arrange
+	expectedDefaultNumGR := 27
+
+	// act
+	parallel.SetDefaultNumGoroutines(expectedDefaultNumGR)
+
+	// assert
+	actualDefaultNumGR := parallel.DefaultNumGoroutines()
+	if expectedDefaultNumGR != actualDefaultNumGR {
+		t.Errorf("expected %d, actual %d\n", expectedDefaultNumGR, actualDefaultNumGR)
+	}
+}
+
+func Test_SetDefaultNumGoroutines_WithNegativeInteger_SetsToOne(t *testing.T) {
+	// arrange
+	defaultNumGRArg := -12
+	expectedDefaultNumGR := 1
+
+	// act
+	parallel.SetDefaultNumGoroutines(defaultNumGRArg)
+
+	// assert
+	actualDefaultNumGR := parallel.DefaultNumGoroutines()
+	if expectedDefaultNumGR != actualDefaultNumGR {
+		t.Errorf("expected %d, actual %d\n", expectedDefaultNumGR, actualDefaultNumGR)
+	}
+}
+
 func BenchmarkForSinc(b *testing.B) {
 	N := 1000000
 	inputArray := make([]float64, N)
