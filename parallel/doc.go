@@ -131,6 +131,18 @@
 // 			responses[i] = executeAPIRequest(requests[i])
 // 		})
 //
+// Best Practices - Verify Speedup
+//
+// • Not every loop is going to be faster simply by using the parallel execution provided by this
+// package. Loops with small amounts of work
+// per index (such as basic arithmetic operations) will often see no benefit from using this
+// package, and may actually run slower.
+//
+// • A good rule of thumb is if the loop body makes at least one call to a non-inlineable
+// function, it may benefit from this parallel package.
+//
+// • Always verify results when parallelizing loops, both for speedup and correctness.
+//
 // Best Practices - Selecting a Strategy
 //
 // • Generally, the default StrategyContiguousBlocks is recommended in all loops when each loop
