@@ -55,13 +55,13 @@
 // 		}
 //
 //		// serial
-//		// ~300ms
+//		// ~290ms
 // 		for i := 0; i < N; i++ {
 // 			outputArray[i] = sinc(inputArray[i] * math.Pi)
 // 		}
 //
 //		// one goroutine per iteration with 4 CPUs
-//		// ~2.4s
+//		// ~1.9s
 //		for i := 0; i < N; i++ {
 //			go func(i int) {
 //				outputArray[i] = sinc(inputArray[i] * math.Pi)
@@ -69,7 +69,7 @@
 //		}
 //
 // 		// parallel package construct with 4 CPUs
-//		// ~130ms
+//		// ~90ms
 // 		parallel.For(N, func(i, _ int) {
 // 			outputArray[i] = sinc(inputArray[i] * math.Pi)
 // 		})
@@ -130,6 +130,21 @@
 // 		requestsExecutor.For(numRequests, func(i, _ int) {
 // 			responses[i] = executeAPIRequest(requests[i])
 // 		})
+//
+// Best Practices - Verify Speedup
+//
+// • Not every loop is going to be faster simply by using the parallel execution provided by this
+// package. Loops with small amounts of work
+// per index (such as basic arithmetic operations) will often see no benefit from using this
+// package, and may actually run slower.
+//
+// • A good rule of thumb is if the loop body makes at least one call to a non-inlineable
+// function, it may benefit from this parallel package.
+//
+// • Test with a varying number of goroutines. In many cases, the optimal number of goroutines may
+// be less than the number of available CPU cores.
+//
+// • Always verify results when parallelizing loops, both for speedup and correctness.
 //
 // Best Practices - Selecting a Strategy
 //
