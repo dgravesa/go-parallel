@@ -25,7 +25,7 @@ go get -v github.com/dgravesa/go-parallel
 
 ## Examples
 
-* [For loop](https://godoc.org/github.com/dgravesa/go-parallel/parallel#For)
-* [For loop including goroutine ID](https://godoc.org/github.com/dgravesa/go-parallel/parallel#ForWithGrID)
+* [For loop](https://pkg.go.dev/github.com/dgravesa/go-parallel/parallel#example-For-Basic)
+* [For loop including goroutine ID](https://pkg.go.dev/github.com/dgravesa/go-parallel/parallel#example-For-GoroutineID)
 * [go-modalclust](https://github.com/dgravesa/go-modalclust/blob/master/pkg/modalclust/mac.go#L30),
 a Go-based implementation of a modal clustering algorithm.
