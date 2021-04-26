@@ -1,6 +1,9 @@
 package parallel
 
-import "runtime"
+import (
+	"context"
+	"runtime"
+)
 
 var defaultNumGoroutines = runtime.GOMAXPROCS(0)
 
@@ -21,6 +24,12 @@ var defaultNumGoroutines = runtime.GOMAXPROCS(0)
 // be computed more quickly from the partial results immediately after the parallel loop.
 func For(N int, loopBody func(i, grID int)) {
 	NewExecutor().For(N, loopBody)
+}
+
+func ForWithContext(ctx context.Context, N int,
+	loopBody func(ctx context.Context, i, grID int)) error {
+
+	return NewExecutor().ForWithContext(ctx, N, loopBody)
 }
 
 // WithNumGoroutines returns a default executor, but using a specific number of goroutines.

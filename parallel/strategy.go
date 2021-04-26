@@ -1,5 +1,7 @@
 package parallel
 
+import "context"
+
 // StrategyType identifies a parallel strategy.
 // Different parallel strategies vary on how work items are executed across goroutines.
 // The available strategy types are defined as constants and follow the naming convention
@@ -24,6 +26,9 @@ const (
 
 type strategy interface {
 	executeFor(numGR, N int, loopBody func(i, grID int))
+
+	executeForWithContext(ctx context.Context, numGR, N int,
+		loopBody func(ctx context.Context, i, grID int)) error
 }
 
 func defaultStrategy() strategy {

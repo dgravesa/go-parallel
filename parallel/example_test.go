@@ -1,7 +1,10 @@
 package parallel_test
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	"github.com/dgravesa/go-parallel/parallel"
 )
@@ -72,4 +75,28 @@ func ExampleWithCPUProportion() {
 
 	fmt.Println(floor)
 	// Output: [1 2 1 5 3 9 6 6]
+}
+
+func ExampleForWithContext_timeout() {
+	// max iteration time is 3 seconds
+	sleepTimeMillis := []time.Duration{100, 600, 200, 100, 200, 50, 3000, 30, 10, 200, 30}
+	N := len(sleepTimeMillis)
+
+	// timeout at 1 second
+	ctx, cancel := context.WithTimeout(context.Background(), 1000*time.Millisecond)
+	defer cancel()
+
+	err := parallel.ForWithContext(ctx, N, func(ctx context.Context, i, grID int) {
+		thisIterationDuration := time.Duration(sleepTimeMillis[i]) * time.Millisecond
+
+		select {
+		case <-time.After(thisIterationDuration):
+			// this loop sleep iteration completed
+		case <-ctx.Done():
+			// deadline reached
+		}
+	})
+
+	fmt.Println(errors.Is(err, context.DeadlineExceeded))
+	// Output: true
 }

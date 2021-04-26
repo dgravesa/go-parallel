@@ -1,6 +1,7 @@
 package parallel
 
 import (
+	"context"
 	"math"
 	"runtime"
 )
@@ -73,4 +74,10 @@ func (e *Executor) WithStrategy(strategy StrategyType) *Executor {
 // be computed more quickly from the partial results immediately after the parallel loop.
 func (e *Executor) For(N int, loopBody func(i, grID int)) {
 	e.parallelStrategy.executeFor(e.numGoroutines, N, loopBody)
+}
+
+func (e *Executor) ForWithContext(ctx context.Context, N int,
+	loopBody func(ctx context.Context, i, grID int)) error {
+
+	return e.parallelStrategy.executeForWithContext(ctx, e.numGoroutines, N, loopBody)
 }

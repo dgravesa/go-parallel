@@ -1,6 +1,9 @@
 package parallel
 
-import "sync"
+import (
+	"context"
+	"sync"
+)
 
 type contiguousBlocksStrategy struct{}
 
@@ -20,6 +23,33 @@ func (contiguousBlocksStrategy) executeFor(numGR, N int, loopBody func(i, grID i
 	}
 
 	wg.Wait()
+}
+
+func (contiguousBlocksStrategy) executeForWithContext(ctx context.Context, numGR, N int,
+	loopBody func(ctx context.Context, i, grID int)) error {
+
+	var wg sync.WaitGroup
+	wg.Add(numGR)
+
+	// launch goroutines
+	for grID := 0; grID < numGR; grID++ {
+		go func(grID int) {
+			defer wg.Done()
+			first, last := grIndexBlock(numGR, grID, N)
+			for i := first; i < last; i++ {
+				select {
+				case <-ctx.Done():
+					return
+				default:
+					loopBody(ctx, i, grID)
+				}
+			}
+		}(grID)
+	}
+
+	wg.Wait()
+
+	return ctx.Err()
 }
 
 // grIndexBlock computes the contiguous index range for a goroutine with given ID
