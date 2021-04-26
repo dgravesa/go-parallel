@@ -73,11 +73,15 @@ func (e *Executor) WithStrategy(strategy StrategyType) *Executor {
 // such that each goroutine computes a partial result independently, and then a final result could
 // be computed more quickly from the partial results immediately after the parallel loop.
 func (e *Executor) For(N int, loopBody func(i, grID int)) {
-	e.parallelStrategy.executeFor(e.numGoroutines, N, loopBody)
+	loopBodyWithContext := func(_ context.Context, i, grID int) {
+		loopBody(i, grID)
+	}
+
+	e.parallelStrategy.executeFor(context.Background(), e.numGoroutines, N, loopBodyWithContext)
 }
 
 func (e *Executor) ForWithContext(ctx context.Context, N int,
 	loopBody func(ctx context.Context, i, grID int)) error {
 
-	return e.parallelStrategy.executeForWithContext(ctx, e.numGoroutines, N, loopBody)
+	return e.parallelStrategy.executeFor(ctx, e.numGoroutines, N, loopBody)
 }

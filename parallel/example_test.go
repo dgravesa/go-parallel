@@ -78,16 +78,16 @@ func ExampleWithCPUProportion() {
 }
 
 func ExampleForWithContext_timeout() {
-	// max iteration time is 3 seconds
-	sleepTimeMillis := []time.Duration{100, 600, 200, 100, 200, 50, 3000, 30, 10, 200, 30}
-	N := len(sleepTimeMillis)
+	// max iteration time is 3 milliseconds
+	sleepTimeMicros := []time.Duration{100, 600, 200, 100, 200, 50, 3000, 30, 10, 200, 30}
+	N := len(sleepTimeMicros)
 
-	// timeout at 1 second
-	ctx, cancel := context.WithTimeout(context.Background(), 1000*time.Millisecond)
+	// timeout at 1 millisecond
+	ctx, cancel := context.WithTimeout(context.Background(), 1000*time.Microsecond)
 	defer cancel()
 
 	err := parallel.ForWithContext(ctx, N, func(ctx context.Context, i, grID int) {
-		thisIterationDuration := time.Duration(sleepTimeMillis[i]) * time.Millisecond
+		thisIterationDuration := time.Duration(sleepTimeMicros[i]) * time.Microsecond
 
 		select {
 		case <-time.After(thisIterationDuration):

@@ -3,6 +3,8 @@ package parallel
 import (
 	"context"
 	"runtime"
+
+	"github.com/dgravesa/go-parallel/parallel"
 )
 
 var defaultNumGoroutines = runtime.GOMAXPROCS(0)
@@ -26,10 +28,14 @@ func For(N int, loopBody func(i, grID int)) {
 	NewExecutor().For(N, loopBody)
 }
 
+// ForWithContext is the same as For(), but includes a context argument to enable timeout,
+// cancellation, and other context capabilities. The context ctx is propogated directly to loop
+// iterations.
 func ForWithContext(ctx context.Context, N int,
 	loopBody func(ctx context.Context, i, grID int)) error {
 
-	return NewExecutor().ForWithContext(ctx, N, loopBody)
+	return NewExecutor().WithStrategy(parallel.StrategyAtomicCounter).
+		ForWithContext(ctx, N, loopBody)
 }
 
 // WithNumGoroutines returns a default executor, but using a specific number of goroutines.

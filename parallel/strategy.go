@@ -25,9 +25,7 @@ const (
 )
 
 type strategy interface {
-	executeFor(numGR, N int, loopBody func(i, grID int))
-
-	executeForWithContext(ctx context.Context, numGR, N int,
+	executeFor(ctx context.Context, numGR, N int,
 		loopBody func(ctx context.Context, i, grID int)) error
 }
 

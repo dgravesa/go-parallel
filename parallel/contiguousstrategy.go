@@ -7,25 +7,7 @@ import (
 
 type contiguousBlocksStrategy struct{}
 
-func (contiguousBlocksStrategy) executeFor(numGR, N int, loopBody func(i, grID int)) {
-	var wg sync.WaitGroup
-	wg.Add(numGR)
-
-	// launch goroutines
-	for grID := 0; grID < numGR; grID++ {
-		go func(grID int) {
-			defer wg.Done()
-			first, last := grIndexBlock(numGR, grID, N)
-			for i := first; i < last; i++ {
-				loopBody(i, grID)
-			}
-		}(grID)
-	}
-
-	wg.Wait()
-}
-
-func (contiguousBlocksStrategy) executeForWithContext(ctx context.Context, numGR, N int,
+func (contiguousBlocksStrategy) executeFor(ctx context.Context, numGR, N int,
 	loopBody func(ctx context.Context, i, grID int)) error {
 
 	var wg sync.WaitGroup
