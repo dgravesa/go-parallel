@@ -8,7 +8,7 @@ import (
 type contiguousBlocksStrategy struct{}
 
 func (contiguousBlocksStrategy) executeFor(ctx context.Context, numGR, N int,
-	loopBody func(ctx context.Context, i, grID int)) error {
+	loopBody func(pctx *Context)) error {
 
 	var wg sync.WaitGroup
 	wg.Add(numGR)
@@ -23,7 +23,8 @@ func (contiguousBlocksStrategy) executeFor(ctx context.Context, numGR, N int,
 				case <-ctx.Done():
 					return
 				default:
-					loopBody(ctx, i, grID)
+					pctx := makeParallelContext(ctx, i, grID)
+					loopBody(pctx)
 				}
 			}
 		}(grID)

@@ -25,8 +25,7 @@ const (
 )
 
 type strategy interface {
-	executeFor(ctx context.Context, numGR, N int,
-		loopBody func(ctx context.Context, i, grID int)) error
+	executeFor(ctx context.Context, numGR, N int, loopBody func(pctx *Context)) error
 }
 
 func defaultStrategy() strategy {

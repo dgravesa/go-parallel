@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -70,7 +71,8 @@ func main() {
 		}
 	} else {
 		executor := parallel.WithNumGoroutines(numCPU).WithStrategy(strategy)
-		executor.For(N, func(i, _ int) {
+		executor.For(context.TODO(), N, func(pctx *parallel.Context) {
+			i := pctx.Index()
 			outputArray[i] = sinc(inputArray[i] * math.Pi)
 		})
 	}

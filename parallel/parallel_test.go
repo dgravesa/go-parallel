@@ -1,6 +1,7 @@
 package parallel_test
 
 import (
+	"context"
 	"math"
 	"math/rand"
 	"testing"
@@ -31,9 +32,11 @@ func Test_For_Basic_ComputesCorrectResult(t *testing.T) {
 	slice := []float64{0.0, 3.75, -1.5, -2.0, 0.5, 0.75}
 	expectedResult := []float64{1.0, 4.75, -0.5, -1.0, 1.5, 1.75}
 
+	ctx := context.Background()
+
 	// act
-	parallel.For(len(slice), func(i, _ int) {
-		slice[i] += 1.0
+	parallel.For(ctx, len(slice), func(pctx *parallel.Context) {
+		slice[pctx.Index()] += 1.0
 	})
 
 	// assert
@@ -48,9 +51,11 @@ func Test_For_WithGrID_ComputesCorrectResult(t *testing.T) {
 	numGR := parallel.DefaultNumGoroutines()
 	partialSums := make([]int, numGR)
 
+	ctx := context.Background()
+
 	// act
-	parallel.For(N, func(i, grID int) {
-		partialSums[grID] += inputArray[i]
+	parallel.For(ctx, N, func(pctx *parallel.Context) {
+		partialSums[pctx.GoroutineID()] += inputArray[pctx.Index()]
 	})
 
 	// assert
@@ -83,8 +88,11 @@ func Test_WithStrategy_ReturnsValidExecutor(t *testing.T) {
 	expectedResult := []float64{0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5}
 	N := len(resultArray)
 
+	ctx := context.Background()
+
 	// act
-	parallel.WithStrategy(strategy).For(N, func(i, _ int) {
+	parallel.WithStrategy(strategy).For(ctx, N, func(pctx *parallel.Context) {
+		i := pctx.Index()
 		resultArray[i] = float64(i) + 0.5
 	})
 
@@ -129,9 +137,12 @@ func BenchmarkForSinc(b *testing.B) {
 		inputArray[i] = 10 * (rand.Float64() - 0.5)
 	}
 
+	ctx := context.Background()
+
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		parallel.For(N, func(i, _ int) {
+		parallel.For(ctx, N, func(pctx *parallel.Context) {
+			i := pctx.Index()
 			xPi := inputArray[i] * math.Pi
 			outputArray[i] = math.Sin(xPi) / xPi
 		})

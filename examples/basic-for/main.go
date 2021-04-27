@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"time"
@@ -26,7 +27,8 @@ func main() {
 		}
 	} else {
 		// run computation in parallel
-		parallel.For(N, func(i, _ int) {
+		parallel.For(context.TODO(), N, func(pctx *parallel.Context) {
+			i := pctx.Index()
 			x[i] = i
 		})
 	}

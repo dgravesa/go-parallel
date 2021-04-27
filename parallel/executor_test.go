@@ -1,6 +1,7 @@
 package parallel_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -12,8 +13,11 @@ func Test_ExecutorFor_WithNewExecutor_ComputesCorrectResult(t *testing.T) {
 	slice := []float64{0.0, 3.75, -1.5, -2.0, 0.5, 0.75}
 	expectedResult := []float64{1.0, 4.75, -0.5, -1.0, 1.5, 1.75}
 
+	ctx := context.Background()
+
 	// act
-	parallel.NewExecutor().For(len(slice), func(i, _ int) {
+	parallel.NewExecutor().For(ctx, len(slice), func(pctx *parallel.Context) {
+		i := pctx.Index()
 		slice[i] += 1.0
 	})
 
@@ -30,8 +34,11 @@ func Test_ExecutorFor_WithVaryingNumGoroutines_ComputesCorrectResult(t *testing.
 	for _, numGRs := range []int{1, 2, 3} {
 		actualOutput := make([]float64, N)
 
+		ctx := context.Background()
+
 		// act
-		parallel.NewExecutor().WithNumGoroutines(numGRs).For(N, func(i, _ int) {
+		parallel.NewExecutor().WithNumGoroutines(numGRs).For(ctx, N, func(pctx *parallel.Context) {
+			i := pctx.Index()
 			actualOutput[i] = 2.0 * inputArray[i]
 		})
 
@@ -51,8 +58,13 @@ func Test_ExecutorFor_UsingGrID_ComputesCorrectResult(t *testing.T) {
 		partialSums := make([]int, numGR)
 		e := parallel.NewExecutor().WithNumGoroutines(numGR)
 
+		ctx := context.Background()
+
 		// act
-		e.For(N, func(i, grID int) {
+		e.For(ctx, N, func(pctx *parallel.Context) {
+			i := pctx.Index()
+			grID := pctx.GoroutineID()
+
 			partialSums[grID] += inputArray[i]
 		})
 
@@ -100,8 +112,13 @@ func Test_ExecutorFor_WithStrategy_ComputesCorrectResult(t *testing.T) {
 			partialSums := make([]int, numGR)
 			e := parallel.NewExecutor().WithStrategy(strategy).WithNumGoroutines(numGR)
 
+			ctx := context.Background()
+
 			// act
-			e.For(N, func(i, grID int) {
+			e.For(ctx, N, func(pctx *parallel.Context) {
+				i := pctx.Index()
+				grID := pctx.GoroutineID()
+
 				partialSums[grID] += inputArray[i]
 			})
 
