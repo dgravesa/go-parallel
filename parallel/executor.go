@@ -1,22 +1,23 @@
 package parallel
 
 import (
+	"context"
 	"math"
 	"runtime"
+	"sync"
 )
 
 // Executor is the core type used to execute parallel loops.
 // New instances are created using NewExecutor().
 type Executor struct {
 	numGoroutines    int
-	parallelStrategy strategy
+	parallelStrategy Strategy
 }
 
 // NewExecutor returns a new parallel executor instance.
 func NewExecutor() *Executor {
 	e := new(Executor)
 	e.numGoroutines = DefaultNumGoroutines()
-	e.parallelStrategy = defaultStrategy()
 	return e
 }
 
@@ -43,16 +44,25 @@ func (e *Executor) WithCPUProportion(p float64) *Executor {
 // WithStrategy sets the parallel strategy for execution.
 // Different parallel strategies vary on how work items are distributed among goroutines.
 // The strategy types are defined as constants and follow the naming convention Strategy*.
-// If an unrecognized value is specified, the default contiguous blocks strategy will be used.
-func (e *Executor) WithStrategy(strategy StrategyType) *Executor {
-	switch strategy {
+// If an unrecognized value is specified, the defaults will be used for both For() and
+// ForWithContext().
+func (e *Executor) WithStrategy(strategyType StrategyType) *Executor {
+	switch strategyType {
 	case StrategyContiguousBlocks:
-		e.parallelStrategy = new(contiguousBlocksStrategy)
+		e.parallelStrategy = newContiguousBlocksStrategy()
 	case StrategyAtomicCounter:
-		e.parallelStrategy = new(atomicCounterStrategy)
+		e.parallelStrategy = newAtomicCounterStrategy()
 	default:
-		e.parallelStrategy = defaultStrategy()
+		e.parallelStrategy = nil
 	}
+	return e
+}
+
+// WithCustomStrategy sets a custom parallel strategy for execution.
+// Defining custom strategies is an advanced feature. Most users should instead specify one of the
+// strategies built into this package using WithStrategy().
+func (e *Executor) WithCustomStrategy(customStrategy Strategy) *Executor {
+	e.parallelStrategy = customStrategy
 	return e
 }
 
@@ -71,6 +81,72 @@ func (e *Executor) WithStrategy(strategy StrategyType) *Executor {
 // This ID can be used as part of the parallel logic; for example, the goroutine ID may be used
 // such that each goroutine computes a partial result independently, and then a final result could
 // be computed more quickly from the partial results immediately after the parallel loop.
+//
+// By default, For() uses the contiguous index blocks strategy.
 func (e *Executor) For(N int, loopBody func(i, grID int)) {
-	e.parallelStrategy.executeFor(e.numGoroutines, N, loopBody)
+	// use default contiguous blocks strategy if strategy has not been specified on executor
+	strategy := e.parallelStrategy
+	if strategy == nil {
+		strategy = newContiguousBlocksStrategy()
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(e.numGoroutines)
+
+	for grID := 0; grID < e.numGoroutines; grID++ {
+		go func(grID int) {
+			defer wg.Done()
+			// make index generator for this goroutine
+			indexGenerator := strategy.IndexGenerator(e.numGoroutines, grID, N)
+			// fetch work indices until work is complete
+			for i := indexGenerator.Next(); i < N; i = indexGenerator.Next() {
+				loopBody(i, grID)
+			}
+		}(grID)
+	}
+
+	wg.Wait()
+}
+
+// ForWithContext is the same as For(), but includes a context argument to enable timeout,
+// cancellation, and other context capabilities.
+// By default, ForWithContext() uses the atomic counter strategy instead of contiguous index
+// blocks. The corresponding ctx.Err() is returned, and will be nil if the loop completed
+// successfully. The context ctx is propogated directly to loop iterations. This context is also
+// checked between loop iterations, so long-running loops will exit prior to completion if ctx is
+// ended, even if ctx is unused within the loop body.
+//
+// On loops that do not require the use of context, For() is recommended as it is slightly faster.
+func (e *Executor) ForWithContext(ctx context.Context, N int,
+	loopBody func(ctx context.Context, i, grID int)) error {
+
+	// use default atomic counter strategy if strategy has not been specified on executor
+	strategy := e.parallelStrategy
+	if strategy == nil {
+		strategy = newAtomicCounterStrategy()
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(e.numGoroutines)
+
+	for grID := 0; grID < e.numGoroutines; grID++ {
+		go func(grID int) {
+			defer wg.Done()
+			// make index generator for this goroutine
+			indexGenerator := strategy.IndexGenerator(e.numGoroutines, grID, N)
+			// fetch work indices until work is complete
+			for i := indexGenerator.Next(); i < N; i = indexGenerator.Next() {
+				select {
+				case <-ctx.Done():
+					return
+				default:
+					loopBody(ctx, i, grID)
+				}
+			}
+		}(grID)
+	}
+
+	wg.Wait()
+
+	return ctx.Err()
 }

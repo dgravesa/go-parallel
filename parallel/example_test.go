@@ -1,7 +1,10 @@
 package parallel_test
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	"github.com/dgravesa/go-parallel/parallel"
 )
@@ -72,4 +75,50 @@ func ExampleWithCPUProportion() {
 
 	fmt.Println(floor)
 	// Output: [1 2 1 5 3 9 6 6]
+}
+
+func ExampleForWithContext_loopBodyTimeout() {
+	// max iteration time is 3 milliseconds
+	sleepTimeMicros := []time.Duration{100, 600, 200, 100, 200, 50, 3000, 30, 10, 200, 30}
+	N := len(sleepTimeMicros)
+
+	// timeout at 1 millisecond
+	ctx, cancel := context.WithTimeout(context.Background(), 1000*time.Microsecond)
+	defer cancel()
+
+	// the error will be returned immediately when the deadline is reached
+	// since the context is checked within the loop body
+	err := parallel.ForWithContext(ctx, N, func(ctx context.Context, i, grID int) {
+		thisIterationDuration := time.Duration(sleepTimeMicros[i]) * time.Microsecond
+
+		select {
+		case <-time.After(thisIterationDuration):
+			// this loop sleep iteration completed
+		case <-ctx.Done():
+			// deadline reached
+		}
+	})
+
+	fmt.Println(errors.Is(err, context.DeadlineExceeded))
+	// Output: true
+}
+
+func ExampleForWithContext_timeoutAfterIteration() {
+	// max iteration time is 3 milliseconds
+	sleepTimeMicros := []time.Duration{100, 600, 200, 800, 2000, 50, 2000, 3000, 10, 200, 30}
+	N := len(sleepTimeMicros)
+
+	// timeout at 1 millisecond
+	ctx, cancel := context.WithTimeout(context.Background(), 1000*time.Microsecond)
+	defer cancel()
+
+	// the error will be returned once the timeout-breaking loop iteration has completed,
+	// since the context is only checked between iterations
+	err := parallel.ForWithContext(ctx, N, func(ctx context.Context, i, grID int) {
+		thisIterationDuration := time.Duration(sleepTimeMicros[i]) * time.Microsecond
+		time.Sleep(thisIterationDuration)
+	})
+
+	fmt.Println(errors.Is(err, context.DeadlineExceeded))
+	// Output: true
 }
