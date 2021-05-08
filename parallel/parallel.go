@@ -39,9 +39,7 @@ func For(N int, loopBody func(i, grID int)) {
 // On loops that do not require the use of context, For() is recommended as it is slightly faster.
 func ForWithContext(ctx context.Context, N int,
 	loopBody func(ctx context.Context, i, grID int)) error {
-
-	return NewExecutor().WithStrategy(StrategyAtomicCounter).
-		ForWithContext(ctx, N, loopBody)
+	return NewExecutor().ForWithContext(ctx, N, loopBody)
 }
 
 // WithNumGoroutines returns a default executor, but using a specific number of goroutines.

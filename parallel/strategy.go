@@ -22,10 +22,6 @@ const (
 	StrategyAtomicCounter = StrategyType(iota)
 )
 
-func defaultStrategy() Strategy {
-	return newContiguousBlocksStrategy()
-}
-
 // Strategy defines a high level interface needed to create a custom index allocation strategy.
 // Implementing a custom Strategy is an advanced feature. For most use cases, the strategies
 // defines within this package should suffice. Custom Strategy implementations should include an

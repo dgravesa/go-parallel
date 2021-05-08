@@ -18,7 +18,6 @@ type Executor struct {
 func NewExecutor() *Executor {
 	e := new(Executor)
 	e.numGoroutines = DefaultNumGoroutines()
-	e.parallelStrategy = defaultStrategy()
 	return e
 }
 
@@ -45,7 +44,8 @@ func (e *Executor) WithCPUProportion(p float64) *Executor {
 // WithStrategy sets the parallel strategy for execution.
 // Different parallel strategies vary on how work items are distributed among goroutines.
 // The strategy types are defined as constants and follow the naming convention Strategy*.
-// If an unrecognized value is specified, the default contiguous blocks strategy will be used.
+// If an unrecognized value is specified, the defaults will be used for both For() and
+// ForWithContext().
 func (e *Executor) WithStrategy(strategyType StrategyType) *Executor {
 	switch strategyType {
 	case StrategyContiguousBlocks:
@@ -53,7 +53,7 @@ func (e *Executor) WithStrategy(strategyType StrategyType) *Executor {
 	case StrategyAtomicCounter:
 		e.parallelStrategy = newAtomicCounterStrategy()
 	default:
-		e.parallelStrategy = defaultStrategy()
+		e.parallelStrategy = nil
 	}
 	return e
 }
@@ -84,6 +84,12 @@ func (e *Executor) WithCustomStrategy(customStrategy Strategy) *Executor {
 //
 // By default, For() uses the contiguous index blocks strategy.
 func (e *Executor) For(N int, loopBody func(i, grID int)) {
+	// use default contiguous blocks strategy if strategy has not been specified on executor
+	strategy := e.parallelStrategy
+	if strategy == nil {
+		strategy = newContiguousBlocksStrategy()
+	}
+
 	var wg sync.WaitGroup
 	wg.Add(e.numGoroutines)
 
@@ -91,7 +97,7 @@ func (e *Executor) For(N int, loopBody func(i, grID int)) {
 		go func(grID int) {
 			defer wg.Done()
 			// make index generator for this goroutine
-			indexGenerator := e.parallelStrategy.IndexGenerator(e.numGoroutines, grID, N)
+			indexGenerator := strategy.IndexGenerator(e.numGoroutines, grID, N)
 			// fetch work indices until work is complete
 			for i := indexGenerator.Next(); i < N; i = indexGenerator.Next() {
 				loopBody(i, grID)
@@ -114,6 +120,12 @@ func (e *Executor) For(N int, loopBody func(i, grID int)) {
 func (e *Executor) ForWithContext(ctx context.Context, N int,
 	loopBody func(ctx context.Context, i, grID int)) error {
 
+	// use default atomic counter strategy if strategy has not been specified on executor
+	strategy := e.parallelStrategy
+	if strategy == nil {
+		strategy = newAtomicCounterStrategy()
+	}
+
 	var wg sync.WaitGroup
 	wg.Add(e.numGoroutines)
 
@@ -121,7 +133,7 @@ func (e *Executor) ForWithContext(ctx context.Context, N int,
 		go func(grID int) {
 			defer wg.Done()
 			// make index generator for this goroutine
-			indexGenerator := e.parallelStrategy.IndexGenerator(e.numGoroutines, grID, N)
+			indexGenerator := strategy.IndexGenerator(e.numGoroutines, grID, N)
 			// fetch work indices until work is complete
 			for i := indexGenerator.Next(); i < N; i = indexGenerator.Next() {
 				select {
