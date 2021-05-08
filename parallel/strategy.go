@@ -1,7 +1,5 @@
 package parallel
 
-import "context"
-
 // StrategyType identifies a parallel strategy.
 // Different parallel strategies vary on how work items are executed across goroutines.
 // The available strategy types are defined as constants and follow the naming convention
@@ -24,11 +22,14 @@ const (
 	StrategyAtomicCounter = StrategyType(iota)
 )
 
-type strategy interface {
-	executeFor(ctx context.Context, numGR, N int,
-		loopBody func(ctx context.Context, i, grID int)) error
+func defaultStrategy() Strategy {
+	return newContiguousBlocksStrategy()
 }
 
-func defaultStrategy() strategy {
-	return new(contiguousBlocksStrategy)
+type Strategy interface {
+	IndexGenerator(numGR, grID, N int) IndexGenerator
+}
+
+type IndexGenerator interface {
+	Next() int
 }

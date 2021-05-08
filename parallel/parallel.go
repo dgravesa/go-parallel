@@ -3,8 +3,6 @@ package parallel
 import (
 	"context"
 	"runtime"
-
-	"github.com/dgravesa/go-parallel/parallel"
 )
 
 var defaultNumGoroutines = runtime.GOMAXPROCS(0)
@@ -34,7 +32,7 @@ func For(N int, loopBody func(i, grID int)) {
 func ForWithContext(ctx context.Context, N int,
 	loopBody func(ctx context.Context, i, grID int)) error {
 
-	return NewExecutor().WithStrategy(parallel.StrategyAtomicCounter).
+	return NewExecutor().WithStrategy(StrategyAtomicCounter).
 		ForWithContext(ctx, N, loopBody)
 }
 

@@ -1,37 +1,38 @@
 package parallel
 
-import (
-	"context"
-	"sync"
-)
-
 type contiguousBlocksStrategy struct{}
 
-func (contiguousBlocksStrategy) executeFor(ctx context.Context, numGR, N int,
-	loopBody func(ctx context.Context, i, grID int)) error {
+func newContiguousBlocksStrategy() *contiguousBlocksStrategy {
+	return &contiguousBlocksStrategy{}
+}
 
-	var wg sync.WaitGroup
-	wg.Add(numGR)
+func (s *contiguousBlocksStrategy) IndexGenerator(numGR, grID, N int) IndexGenerator {
+	startIndex, stopIndex := grIndexBlock(numGR, grID, N)
 
-	// launch goroutines
-	for grID := 0; grID < numGR; grID++ {
-		go func(grID int) {
-			defer wg.Done()
-			first, last := grIndexBlock(numGR, grID, N)
-			for i := first; i < last; i++ {
-				select {
-				case <-ctx.Done():
-					return
-				default:
-					loopBody(ctx, i, grID)
-				}
-			}
-		}(grID)
+	return &contiguousIndexGenerator{
+		startIndex: startIndex,
+		stopIndex:  stopIndex,
+		doneIndex:  N,
+		nextIndex:  startIndex,
+	}
+}
+
+type contiguousIndexGenerator struct {
+	startIndex, stopIndex int
+	doneIndex             int
+
+	nextIndex int
+}
+
+func (g *contiguousIndexGenerator) Next() int {
+	if g.nextIndex >= g.stopIndex {
+		return g.doneIndex
 	}
 
-	wg.Wait()
+	thisIndex := g.nextIndex
+	g.nextIndex++
 
-	return ctx.Err()
+	return thisIndex
 }
 
 // grIndexBlock computes the contiguous index range for a goroutine with given ID

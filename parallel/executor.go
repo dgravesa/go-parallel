@@ -4,13 +4,14 @@ import (
 	"context"
 	"math"
 	"runtime"
+	"sync"
 )
 
 // Executor is the core type used to execute parallel loops.
 // New instances are created using NewExecutor().
 type Executor struct {
 	numGoroutines    int
-	parallelStrategy strategy
+	parallelStrategy Strategy
 }
 
 // NewExecutor returns a new parallel executor instance.
@@ -48,9 +49,9 @@ func (e *Executor) WithCPUProportion(p float64) *Executor {
 func (e *Executor) WithStrategy(strategy StrategyType) *Executor {
 	switch strategy {
 	case StrategyContiguousBlocks:
-		e.parallelStrategy = new(contiguousBlocksStrategy)
+		e.parallelStrategy = newContiguousBlocksStrategy()
 	case StrategyAtomicCounter:
-		e.parallelStrategy = new(atomicCounterStrategy)
+		e.parallelStrategy = newAtomicCounterStrategy()
 	default:
 		e.parallelStrategy = defaultStrategy()
 	}
@@ -73,15 +74,48 @@ func (e *Executor) WithStrategy(strategy StrategyType) *Executor {
 // such that each goroutine computes a partial result independently, and then a final result could
 // be computed more quickly from the partial results immediately after the parallel loop.
 func (e *Executor) For(N int, loopBody func(i, grID int)) {
-	loopBodyWithContext := func(_ context.Context, i, grID int) {
-		loopBody(i, grID)
+	var wg sync.WaitGroup
+	wg.Add(e.numGoroutines)
+
+	for grID := 0; grID < e.numGoroutines; grID++ {
+		go func(grID int) {
+			defer wg.Done()
+			// make index generator for this goroutine
+			indexGenerator := e.parallelStrategy.IndexGenerator(e.numGoroutines, grID, N)
+			// fetch work indices until work is complete
+			for i := indexGenerator.Next(); i < N; i = indexGenerator.Next() {
+				loopBody(i, grID)
+			}
+		}(grID)
 	}
 
-	e.parallelStrategy.executeFor(context.Background(), e.numGoroutines, N, loopBodyWithContext)
+	wg.Wait()
 }
 
 func (e *Executor) ForWithContext(ctx context.Context, N int,
 	loopBody func(ctx context.Context, i, grID int)) error {
 
-	return e.parallelStrategy.executeFor(ctx, e.numGoroutines, N, loopBody)
+	var wg sync.WaitGroup
+	wg.Add(e.numGoroutines)
+
+	for grID := 0; grID < e.numGoroutines; grID++ {
+		go func(grID int) {
+			defer wg.Done()
+			// make index generator for this goroutine
+			indexGenerator := e.parallelStrategy.IndexGenerator(e.numGoroutines, grID, N)
+			// fetch work indices until work is complete
+			for i := indexGenerator.Next(); i < N; i = indexGenerator.Next() {
+				select {
+				case <-ctx.Done():
+					return
+				default:
+					loopBody(ctx, i, grID)
+				}
+			}
+		}(grID)
+	}
+
+	wg.Wait()
+
+	return ctx.Err()
 }

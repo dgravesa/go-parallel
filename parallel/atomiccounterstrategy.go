@@ -1,41 +1,29 @@
 package parallel
 
 import (
-	"context"
-	"sync"
 	"sync/atomic"
 )
 
-type atomicCounterStrategy struct{}
+type atomicCounterStrategy struct {
+	counter int64
+}
 
-func (atomicCounterStrategy) executeFor(ctx context.Context, numGR, N int,
-	loopBody func(ctx context.Context, i, grID int)) error {
-
-	var wg sync.WaitGroup
-	wg.Add(numGR)
-
-	// counter and fetcher
-	counter := int64(-1)
-	fetchIndex := func() int {
-		return int(atomic.AddInt64(&counter, 1))
+func newAtomicCounterStrategy() Strategy {
+	return &atomicCounterStrategy{
+		counter: -1, // first receiver will increment atomically and receive 0
 	}
+}
 
-	for grID := 0; grID < numGR; grID++ {
-		go func(grID int) {
-			defer wg.Done()
-			// fetch work indices until work is complete
-			for i := fetchIndex(); i < N; i = fetchIndex() {
-				select {
-				case <-ctx.Done():
-					return
-				default:
-					loopBody(ctx, i, grID)
-				}
-			}
-		}(grID)
+func (s *atomicCounterStrategy) IndexGenerator(_, _, _ int) IndexGenerator {
+	return &atomicIndexGenerator{
+		counterAddr: &s.counter,
 	}
+}
 
-	wg.Wait()
+type atomicIndexGenerator struct {
+	counterAddr *int64
+}
 
-	return ctx.Err()
+func (g *atomicIndexGenerator) Next() int {
+	return int(atomic.AddInt64(g.counterAddr, 1))
 }
