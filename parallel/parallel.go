@@ -32,7 +32,7 @@ func For(N int, loopBody func(i, grID int)) {
 // cancellation, and other context capabilities.
 // By default, ForWithContext() uses the atomic counter strategy instead of contiguous index
 // blocks. The corresponding ctx.Err() is returned, and will be nil if the loop completed
-// successfully. The context ctx is propogated directly to loop iterations. This context is also
+// successfully. The context ctx is propagated directly to loop iterations. This context is also
 // checked between loop iterations, so long-running loops will exit prior to completion if ctx is
 // ended, even if ctx is unused within the loop body.
 //
@@ -55,8 +55,9 @@ func WithCPUProportion(p float64) *Executor {
 
 // WithStrategy returns a default executor, but with a particular parallel strategy for execution.
 // Different parallel strategies vary on how work items are distributed among goroutines.
-// The strategy types are defined as constants and follow the naming convention Strategy*.
-// If an unrecognized value is specified, the default contiguous blocks strategy will be used.
+// Currently, StrategyContiguousBlocks, StrategyAtomicCounter, and StrategyUseDefaults are the
+// accepted values. If either StrategyUseDefaults or an unrecognized value is specified, the
+// defaults will be used for both For() and ForWithContext().
 func WithStrategy(strategyType StrategyType) *Executor {
 	return NewExecutor().WithStrategy(strategyType)
 }
