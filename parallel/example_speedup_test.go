@@ -11,7 +11,7 @@ import (
 
 func Example() {
 	// initialize input array of N values, not included in runtime
-	N := 10000000
+	N := 1000
 	inputArray := make([]float64, N)
 	outputArray := make([]float64, N)
 	for i := 0; i < N; i++ {
@@ -35,10 +35,12 @@ func Example() {
 	t3 := time.Now()
 
 	fmt.Printf("serial: %v\n", t2.Sub(t1))
-	fmt.Printf("parallel (%d procs): %v\n", parallel.DefaultNumGoroutines(), t3.Sub(t2))
+	fmt.Printf("parallel: %v (%d goroutines)\n", t3.Sub(t2), parallel.DefaultNumGoroutines())
 }
 
 func sinc(x float64) float64 {
+	time.Sleep(1 * time.Millisecond) // simulate a longer running operation
+
 	if x == 0.0 {
 		return 1.0
 	}
