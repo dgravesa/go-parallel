@@ -32,7 +32,7 @@ func (e *Executor) WithNumGoroutines(numGoroutines int) *Executor {
 	return e
 }
 
-// WithCPUProportion sets the number of goroutines based on a proportion of number of CPUs,
+// WithCPUProportion sets the number of goroutines based on a proportion of number of cores,
 // with a minimum of 1.
 func (e *Executor) WithCPUProportion(p float64) *Executor {
 	numCPU := runtime.NumCPU()
