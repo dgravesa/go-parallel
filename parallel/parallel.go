@@ -55,8 +55,9 @@ func WithCPUProportion(p float64) *Executor {
 
 // WithStrategy returns a default executor, but with a particular parallel strategy for execution.
 // Different parallel strategies vary on how work items are distributed among goroutines.
-// The strategy types are defined as constants and follow the naming convention Strategy*.
-// If an unrecognized value is specified, the default contiguous blocks strategy will be used.
+// Currently, StrategyContiguousBlocks, StrategyAtomicCounter, and StrategyUseDefaults are the
+// accepted values. If either StrategyUseDefaults or an unrecognized value is specified, the
+// defaults will be used for both For() and ForWithContext().
 func WithStrategy(strategyType StrategyType) *Executor {
 	return NewExecutor().WithStrategy(strategyType)
 }

@@ -20,6 +20,10 @@ const (
 	// This strategy may be faster than the contiguous blocks strategy for parallelizable loops
 	// with greater time variation across iterations.
 	StrategyAtomicCounter = StrategyType(iota)
+
+	// StrategyUseDefaults may be specified on WithStrategy() calls to set the executor to use the
+	// default strategies for both For() and ForWithContext().
+	StrategyUseDefaults = StrategyType(-1)
 )
 
 // Strategy defines a high level interface needed to create a custom index allocation strategy.
