@@ -27,8 +27,12 @@ func For(N int, loopBody func(i, grID int)) {
 }
 
 // ForWithContext is the same as For(), but includes a context argument to enable timeout,
-// cancellation, and other context capabilities. The context ctx is propogated directly to loop
-// iterations.
+// cancellation, and other context capabilities. The corresponding ctx.Err() is returned, and will
+// be nil if the loop completed successfully. The context ctx is propogated directly to loop
+// iterations. This context is also checked between loop iterations, so long-running loops will
+// exit prior to completion if ctx is ended, even if ctx is unused within the loop body.
+//
+// On loops that do not require the use of context, For() is recommended as it is slightly faster.
 func ForWithContext(ctx context.Context, N int,
 	loopBody func(ctx context.Context, i, grID int)) error {
 
