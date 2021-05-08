@@ -1,9 +1,9 @@
 package parallel
 
 // StrategyType identifies a parallel strategy.
-// Different parallel strategies vary on how work items are executed across goroutines.
-// The available strategy types are defined as constants and follow the naming convention
-// Strategy*.
+// Different parallel strategies vary on how work items are distributed among goroutines.
+// Currently, StrategyContiguousBlocks, StrategyAtomicCounter, and StrategyUseDefaults are the
+// accepted values.
 type StrategyType int
 
 const (
@@ -34,11 +34,6 @@ const (
 // work items. An separate IndexGenerator is created for each goroutine. It is the responsibility
 // of the custom Strategy implementer to ensure that indices returned by Next() do not overlap
 // among the separate IndexGenerator instances.
-//
-// The IndexGenerator defines a Next() method that gives a goroutine its next index, until all
-// indexes have been worked as specified by Next() returning a value >= N.
-// It is the responsibility of the Strategy implementer to ensure that the same index is not
-// returned by Next() multiple times across the goroutines.
 type Strategy interface {
 	IndexGenerator(numGR, grID, N int) IndexGenerator
 }
