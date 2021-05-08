@@ -36,7 +36,7 @@ func (g *IncrementNumGRsIndexGenerator) Next() int {
 	return thisValue
 }
 
-func ExampleFor_customStrategy() {
+func ExampleWithCustomStrategy() {
 	N := 15
 	outputs := make([]int, N)
 

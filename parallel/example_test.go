@@ -77,6 +77,23 @@ func ExampleWithCPUProportion() {
 	// Output: [1 2 1 5 3 9 6 6]
 }
 
+func ExampleWithStrategy() {
+	// time varies significantly among loop iterations, so use atomic counter strategy
+	sleepTimeMillis := []time.Duration{100, 600, 1000, 100, 200, 50, 200, 30, 10, 200, 30}
+	N := len(sleepTimeMillis)
+
+	t1 := time.Now()
+
+	parallel.WithStrategy(parallel.StrategyAtomicCounter).WithNumGoroutines(4).
+		For(N, func(i, _ int) {
+			time.Sleep(sleepTimeMillis[i] * time.Millisecond)
+		})
+
+	t2 := time.Now()
+
+	fmt.Println(t2.Sub(t1))
+}
+
 func ExampleForWithContext_loopBodyTimeout() {
 	// max iteration time is 3 milliseconds
 	sleepTimeMicros := []time.Duration{100, 600, 200, 100, 200, 50, 3000, 30, 10, 200, 30}

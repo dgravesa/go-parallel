@@ -2,7 +2,7 @@ package parallel
 
 type contiguousBlocksStrategy struct{}
 
-func newContiguousBlocksStrategy() *contiguousBlocksStrategy {
+func newContiguousBlocksStrategy() Strategy {
 	return &contiguousBlocksStrategy{}
 }
 
