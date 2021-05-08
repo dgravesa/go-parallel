@@ -38,28 +38,6 @@ parallel.For(N, func(i, _ int) {
 })
 ```
 
-At its core, the parallel package is a wrapper around a common pattern
-for parallelization in Go using `sync.WaitGroup`, similar to:
-
-```go
-// same result as before, but using sync.WaitGroup
-
-var wg sync.WaitGroup
-wg.Add(N)
-for i := 0; i < N; i++ {
-    go func(i int) {
-        defer wg.Done()
-        outputs[i] = computeResult(inputs[i])
-    }(i)
-}
-wg.Wait()
-```
-
-Whereas this snippet using `sync.WaitGroup` creates a goroutine for each loop iteration, the
-parallel construct in this package abstracts the goroutine logic and distributes the work
-automatically and intelligently among a smaller number of goroutines, minimizing the overhead
-that results from excessive goroutine lifecycling and scheduling.
-
 ### Motivation
 
 Go is designed for extreme concurrency.
