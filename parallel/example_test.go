@@ -81,16 +81,19 @@ func ExampleWithStrategy() {
 	// time varies significantly among loop iterations, so use atomic counter strategy
 	sleepTimeMillis := []time.Duration{100, 600, 1000, 100, 200, 50, 200, 30, 10, 200, 30}
 	N := len(sleepTimeMillis)
+	workerGrIDs := make([]int, N)
 
 	t1 := time.Now()
 
 	parallel.WithStrategy(parallel.StrategyAtomicCounter).WithNumGoroutines(4).
-		For(N, func(i, _ int) {
+		For(N, func(i, grID int) {
 			time.Sleep(sleepTimeMillis[i] * time.Millisecond)
+			workerGrIDs[i] = grID
 		})
 
 	t2 := time.Now()
 
+	fmt.Println(workerGrIDs)
 	fmt.Println(t2.Sub(t1))
 }
 
