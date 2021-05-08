@@ -48,7 +48,7 @@ func WithNumGoroutines(n int) *Executor {
 }
 
 // WithCPUProportion returns a default executor, but with the number of goroutines based on a
-// proportion of the number of CPUs.
+// proportion of the number of cores.
 func WithCPUProportion(p float64) *Executor {
 	return NewExecutor().WithCPUProportion(p)
 }
