@@ -46,9 +46,9 @@ type Strategy interface {
 // IndexGenerator defines an interface for individual goroutines to retrieve their work indices.
 // IndexGenerator instances should only be created via a corresponding Strategy calling its
 // IndexGenerator() method.
-// The Next() method of IndexGenerator gives a goroutine its indices to wotk until all indices
-// have been worked, which is specified by Next() returning a value >= N that the IndexGenerator
-// was created with.
+// The Next() method of IndexGenerator gives a goroutine its indices to work until all indices
+// have been worked, which is specified by Next() returning a value >= total number of loop
+// iterations, N.
 type IndexGenerator interface {
 	Next() int
 }

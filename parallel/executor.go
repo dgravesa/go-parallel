@@ -46,8 +46,8 @@ func (e *Executor) WithCPUProportion(p float64) *Executor {
 // Different parallel strategies vary on how work items are distributed among goroutines.
 // The strategy types are defined as constants and follow the naming convention Strategy*.
 // If an unrecognized value is specified, the default contiguous blocks strategy will be used.
-func (e *Executor) WithStrategy(strategy StrategyType) *Executor {
-	switch strategy {
+func (e *Executor) WithStrategy(strategyType StrategyType) *Executor {
+	switch strategyType {
 	case StrategyContiguousBlocks:
 		e.parallelStrategy = newContiguousBlocksStrategy()
 	case StrategyAtomicCounter:
@@ -55,6 +55,14 @@ func (e *Executor) WithStrategy(strategy StrategyType) *Executor {
 	default:
 		e.parallelStrategy = defaultStrategy()
 	}
+	return e
+}
+
+// WithCustomStrategy sets a custom parallel strategy for execution.
+// Defining custom strategies is an advanced feature. Most users should instead specify one of the
+// strategies built into this package using WithStrategy().
+func (e *Executor) WithCustomStrategy(customStrategy Strategy) *Executor {
+	e.parallelStrategy = customStrategy
 	return e
 }
 
@@ -73,6 +81,8 @@ func (e *Executor) WithStrategy(strategy StrategyType) *Executor {
 // This ID can be used as part of the parallel logic; for example, the goroutine ID may be used
 // such that each goroutine computes a partial result independently, and then a final result could
 // be computed more quickly from the partial results immediately after the parallel loop.
+//
+// By default, For() uses the contiguous index blocks strategy.
 func (e *Executor) For(N int, loopBody func(i, grID int)) {
 	var wg sync.WaitGroup
 	wg.Add(e.numGoroutines)
@@ -93,10 +103,12 @@ func (e *Executor) For(N int, loopBody func(i, grID int)) {
 }
 
 // ForWithContext is the same as For(), but includes a context argument to enable timeout,
-// cancellation, and other context capabilities. The corresponding ctx.Err() is returned, and will
-// be nil if the loop completed successfully. The context ctx is propogated directly to loop
-// iterations. This context is also checked between loop iterations, so long-running loops will
-// exit prior to completion if ctx is ended, even if ctx is unused within the loop body.
+// cancellation, and other context capabilities.
+// By default, ForWithContext() uses the atomic counter strategy instead of contiguous index
+// blocks. The corresponding ctx.Err() is returned, and will be nil if the loop completed
+// successfully. The context ctx is propogated directly to loop iterations. This context is also
+// checked between loop iterations, so long-running loops will exit prior to completion if ctx is
+// ended, even if ctx is unused within the loop body.
 //
 // On loops that do not require the use of context, For() is recommended as it is slightly faster.
 func (e *Executor) ForWithContext(ctx context.Context, N int,
