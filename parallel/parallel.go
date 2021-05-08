@@ -32,7 +32,7 @@ func For(N int, loopBody func(i, grID int)) {
 // cancellation, and other context capabilities.
 // By default, ForWithContext() uses the atomic counter strategy instead of contiguous index
 // blocks. The corresponding ctx.Err() is returned, and will be nil if the loop completed
-// successfully. The context ctx is propogated directly to loop iterations. This context is also
+// successfully. The context ctx is propagated directly to loop iterations. This context is also
 // checked between loop iterations, so long-running loops will exit prior to completion if ctx is
 // ended, even if ctx is unused within the loop body.
 //
