@@ -89,8 +89,8 @@ func Test_ExecutorFor_WithStrategy_ComputesCorrectResult(t *testing.T) {
 	N := len(inputArray)
 
 	strategies := map[string]parallel.StrategyType{
-		"atomic":     parallel.StrategyAtomicCounter,
-		"contiguous": parallel.StrategyContiguousBlocks,
+		"atomic":     parallel.StrategyFetchNextIndex,
+		"contiguous": parallel.StrategyPreassignIndices,
 		"default":    parallel.StrategyType(-1),
 	}
 

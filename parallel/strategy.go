@@ -2,24 +2,20 @@ package parallel
 
 // StrategyType identifies a parallel strategy.
 // Different parallel strategies vary on how work items are distributed among goroutines.
-// Currently, StrategyContiguousBlocks, StrategyAtomicCounter, and StrategyUseDefaults are the
-// accepted values.
 type StrategyType int
 
 const (
-	// StrategyContiguousBlocks refers to a strategy that preassigns an equal number of iterations
-	// per goroutine as contiguous blocks.
-	// The contiguous blocks strategy works well for most parallelizable loops.
-	// The atomic counter strategy may be faster when loop iterations vary in execution time or
-	// when the execution time per iteration is greater than 1 microsecond.
-	StrategyContiguousBlocks = StrategyType(iota)
+	// StrategyPreassignIndices refers to a strategy that preassigns an equal number of work
+	// indices per goroutine.
+	// This strategy works best when each loop iteration takes roughly the same amount of time
+	// or when each iteration does a very small amount of work i.e. less than 1 microsecond.
+	StrategyPreassignIndices = StrategyType(iota)
 
-	// StrategyAtomicCounter refers to a strategy that uses an atomic counter so goroutines can
-	// fetch additional work items when they are ready as opposed to preassigning iterations
-	// to each goroutine.
-	// This strategy may be faster than the contiguous blocks strategy for parallelizable loops
-	// with greater time variation across iterations.
-	StrategyAtomicCounter = StrategyType(iota)
+	// StrategyFetchNextIndex refers to a strategy where goroutines pull the next available work
+	// index when they are ready, as opposed to preassigned work indices.
+	// This strategy works best when the amount of time is inconsistent between loop iterations.
+	// This strategy generally works best for API requests.
+	StrategyFetchNextIndex = StrategyType(iota)
 
 	// StrategyUseDefaults may be specified on WithStrategy() calls to set the executor to use the
 	// default strategies for both For() and ForWithContext().

@@ -85,7 +85,7 @@ func ExampleWithStrategy() {
 
 	t1 := time.Now()
 
-	parallel.WithStrategy(parallel.StrategyAtomicCounter).WithNumGoroutines(4).
+	parallel.WithStrategy(parallel.StrategyFetchNextIndex).WithNumGoroutines(4).
 		For(N, func(i, grID int) {
 			time.Sleep(sleepTimeMillis[i] * time.Millisecond)
 			workerGrIDs[i] = grID

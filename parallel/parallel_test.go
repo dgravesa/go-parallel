@@ -78,7 +78,7 @@ func Test_WithNumGoroutines_ReturnsValidExecutor(t *testing.T) {
 
 func Test_WithStrategy_ReturnsValidExecutor(t *testing.T) {
 	// arrange
-	strategy := parallel.StrategyAtomicCounter
+	strategy := parallel.StrategyFetchNextIndex
 	resultArray := []float64{0, 0, 0, 0, 0, 0, 0}
 	expectedResult := []float64{0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5}
 	N := len(resultArray)

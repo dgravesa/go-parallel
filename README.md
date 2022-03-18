@@ -135,9 +135,9 @@ follows:
 concurrency := 30
 numRequests := 200
 
-// NOTE: use StrategyAtomicCounter since API requests tend to vary in response times
+// NOTE: use StrategyFetchNextIndex since API requests tend to vary in response times
 requestsExecutor := parallel.NewExecutor().
-    WithStrategy(parallel.StrategyAtomicCounter).
+    WithStrategy(parallel.StrategyFetchNextIndex).
     WithNumGoroutines(concurrency)
 
 requestsExecutor.For(numRequests, func(i, _ int) {
@@ -145,27 +145,25 @@ requestsExecutor.For(numRequests, func(i, _ int) {
 })
 ```
 
-## Best Practices
+## Application Tuning
 
-### Verify Speedup
+Ultimately, the optimal strategy and number of goroutines will vary from loop to loop.
+This section provides a few rules of thumb.
+Although not always necessary, generating a [CPU profile](https://pkg.go.dev/runtime/pprof) may provide additional information for better application performance.
 
-* Not every loop is going to be faster simply by using the parallel execution provided by this
-package. Loops with small amounts of work
-per index (such as basic arithmetic operations) will often see no benefit from using this
-package, and may actually run slower.
-
-* A good rule of thumb is if the loop body makes at least one call to a non-inlineable
-function, it may benefit from this parallel package.
-
-* Test with a varying number of goroutines. In many cases, the optimal number of goroutines may
-be less than the number of available CPU cores.
-
-* Always verify results when parallelizing loops, both for speedup and correctness.
+It's important to verify speedup over the existing serial implementation.
+In many cases, loops will not be large enough to benefit from the parallel execution provided by this package.
 
 ### Selecting a Strategy
 
-* Generally, the default StrategyContiguousBlocks is recommended in all loops when each loop
-index takes less than one microsecond.
+| Strategy | Use Cases |
+| -------- | --------- |
+| StrategyPreassignIndices | Each loop iteration takes less than one microsecond. |
+| StrategyFetchNextIndex | Some or all loop iterations take longer than one microsecond. |
 
-* In loops where the amount of work or time varies by index, using StrategyAtomicCounter may
-help to balance work more evenly among goroutines, resulting in faster loop execution.
+### Selecting number of goroutines
+
+* For compute-bound loops, the optimal number of goroutines is typically equal to or slightly less than the number of CPUs.
+By default, parallel execution will execute a number of goroutines equal to the number of CPUs. To use slightly less than this,
+specify either `WithCPUProportion(p)` with *p < 1.0* or `WithNumGoroutines(n)`.
+* For network-bound loops, the optimal number of goroutines may depend on the network bandwidth required for each iteration, but will often be more than the number of CPUs. In this case, `WithNumGoroutines(n)` should be tested with increasing values for *n* until an optimal value is found.
